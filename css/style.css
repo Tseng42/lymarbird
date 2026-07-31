@@ -1,0 +1,246 @@
+/* ============================================================
+   基本重置：全螢幕、無捲動，適合手機直式全螢幕 AR
+   ============================================================ */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei",
+               "Helvetica Neue", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hidden { display: none !important; }
+
+/* ============================================================
+   手機端 DEBUG 區塊（固定螢幕上方，半透明黑底白字）
+   確認穩定後可移除此段與 index.html 中的 #debug。
+   pointer-events:none → 不擋下方按鈕點擊。
+   ============================================================ */
+#debug {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #eafaff;
+  font: 12px/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+/* ============================================================
+   開始畫面（全螢幕遮罩 + 置中按鈕）
+   ============================================================ */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  /* 翠鳥藍綠色系漸層背景 */
+  background: radial-gradient(circle at 50% 35%, #12586e 0%, #08222c 70%, #041318 100%);
+}
+
+#start-inner { padding: 24px; max-width: 90vw; }
+
+#start-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  letter-spacing: 2px;
+}
+
+#start-subtitle {
+  font-size: 1.05rem;
+  margin: 0 0 32px;
+  color: #bfe9f5;
+}
+
+#start-button {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #06232d;
+  background: linear-gradient(180deg, #7fe3ff 0%, #38b6d8 100%);
+  border: none;
+  border-radius: 999px;
+  padding: 16px 40px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(56, 182, 216, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+#start-button:active {
+  transform: scale(0.96);
+  box-shadow: 0 3px 12px rgba(56, 182, 216, 0.4);
+}
+
+#start-hint {
+  margin-top: 22px;
+  font-size: 0.85rem;
+  color: #8fb9c6;
+}
+
+/* ============================================================
+   掃描提示（啟動後、未掃到圖卡時）
+   ============================================================ */
+#scan-hint {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #eafaff;
+  font-size: 0.95rem;
+  backdrop-filter: blur(4px);
+  animation: pulseHint 1.6s ease-in-out infinite;
+}
+@keyframes pulseHint {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+/* ============================================================
+   解說面板（DOM 疊層）：深色半透明底、白字，直式底部固定
+   ============================================================ */
+#panel {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  transform: translate(-50%, 20px);
+  z-index: 20;
+  width: min(92vw, 460px);
+  padding: 18px 20px 20px;
+  border-radius: 18px;
+  background: rgba(6, 24, 32, 0.82);
+  border: 1px solid rgba(127, 227, 255, 0.25);
+  color: #ffffff;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  /* 淡入淡出 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+#panel.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;   /* 顯示時才接收觸控/點擊，隱藏時 none 不擋畫面 */
+}
+
+#p-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  padding-right: 44px;   /* 避開右上角關閉鈕 */
+}
+#p-alias {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: #bfe9f5;
+  padding-right: 44px;   /* 避開右上角關閉鈕 */
+}
+#p-sci-line {
+  margin-top: 4px;
+  font-size: 0.98rem;
+  color: #9fe3ff;
+}
+#p-sci { font-style: italic; }        /* 學名斜體 */
+#p-sci-note { font-style: normal; font-size: 0.85rem; color: #7fbcd0; }
+#p-en {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: #8fb9c6;
+}
+
+.p-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.98rem;
+}
+.p-label {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #06232d;
+  background: #7fe3ff;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+#p-cons { color: #ffd98a; font-weight: 600; }
+
+/* 分眾切換鈕：親子／一般／進階 */
+#p-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.p-tab {
+  flex: 1 1 0;
+  min-height: 40px;               /* 手機好按 */
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #cfeefb;
+  background: rgba(127, 227, 255, 0.12);
+  border: 1px solid rgba(127, 227, 255, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
+  pointer-events: auto;           /* 確保可點（即使父層曾設 none） */
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.p-tab:active { transform: scale(0.96); }
+.p-tab.active {
+  color: #06232d;
+  background: linear-gradient(180deg, #7fe3ff 0%, #38b6d8 100%);
+  border-color: #7fe3ff;
+}
+
+#p-desc {
+  margin: 14px 0 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: #eafaff;
+}
+
+/* 關閉按鈕（面板右上角，好按） */
+#p-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  line-height: 38px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #eafaff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(127, 227, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;           /* 確保可點 */
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+#p-close:active { transform: scale(0.92); }
+#p-close:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* A-Frame 場景鋪滿背景 */
+a-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}

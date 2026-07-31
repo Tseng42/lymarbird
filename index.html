@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>活起來的圖卡 · 翠鳥 WebAR</title>
+
+  <!-- ============================================================
+       MindAR 官方 CDN（image-tracking, A-Frame 版）
+       版本：MindAR 1.2.5 / A-Frame 1.5.0
+       版本號同步記錄於 README.md，日後升級時兩處一起改。
+       ============================================================ -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
+  <script src="js/content.js"></script>
+</head>
+<body>
+
+  <!-- ============================================================
+       手機端 DEBUG 區塊：顯示相機/AR 流程狀態與錯誤（error.name / message）。
+       確認穩定後可整塊移除（HTML + CSS #debug + JS setStatus 相關）。
+       ============================================================ -->
+  <div id="debug">debug: 已載入，請點「開始體驗」</div>
+
+  <!-- ============================================================
+       開始畫面：iOS 需要「使用者手勢」才能啟動相機與音效，
+       所以先擋一層全螢幕按鈕，點擊後才啟動 MindAR。
+       ============================================================ -->
+  <div id="start-screen">
+    <div id="start-inner">
+      <h1 id="start-title">活起來的圖卡</h1>
+      <p id="start-subtitle">把鏡頭對準翠鳥圖卡</p>
+      <button id="start-button">▶ 開始體驗</button>
+      <p id="start-hint">需允許相機權限 · 建議直式握持手機</p>
+    </div>
+  </div>
+
+  <!-- 掃描提示（啟動後、尚未掃到圖卡時顯示） -->
+  <div id="scan-hint" class="hidden">將鏡頭對準圖卡…</div>
+
+  <!-- ============================================================
+       解說面板（DOM 疊層）。
+       說明：A-Frame 內建的 <a-text> 使用 MSDF 字型，無法顯示中文，
+       為了「文字清楚可讀」的中文需求，改用 HTML/CSS 疊層呈現。
+       行為：掃到目標(targetFound)即顯示並鎖定，之後目標離開也不消失；
+       只有按右上角 ✕ 關閉鈕才淡出。內容由 js/content.js 於執行時填入。
+       ============================================================ -->
+  <div id="panel" class="hidden">
+    <!-- 關閉按鈕：按下才淡出面板/翠鳥、暫停音效並解除鎖定 -->
+    <button id="p-close" aria-label="關閉">✕</button>
+    <!-- 固定顯示：中文名（＋別名）、學名（斜體）＋附註、英文名、分類、保育等級 -->
+    <div id="p-name"></div>
+    <div id="p-alias"></div>
+    <div id="p-sci-line">
+      <span id="p-sci"></span><span id="p-sci-note"></span>
+    </div>
+    <div id="p-en"></div>
+    <div class="p-row"><span class="p-label">分類</span><span id="p-taxo"></span></div>
+    <div class="p-row"><span class="p-label">保育</span><span id="p-cons"></span></div>
+
+    <!-- 分眾切換鈕：親子／一般／進階 -->
+    <div id="p-tabs" role="tablist">
+      <button class="p-tab" data-aud="kids">親子</button>
+      <button class="p-tab" data-aud="general">一般</button>
+      <button class="p-tab" data-aud="advanced">進階</button>
+    </div>
+
+    <!-- 隨切換鈕變動的解說文字 -->
+    <p id="p-desc"></p>
+  </div>
+
+  <!-- ============================================================
+       AR 場景。autoStart:false → 由 JS 在按下開始鈕後才 start。
+       uiScanning / uiLoading 關掉 MindAR 內建 UI，改用我們自己的提示。
+       ============================================================ -->
+  <!-- 正式辨識目標：assets/target.mind（你自己的翠鳥卡）
+       測試流程可暫時改成 assets/example-target.mind（官方範例） -->
+  <a-scene
+    id="ar-scene"
+    mindar-image="imageTargetSrc: assets/example-target.mind; autoStart: false; uiScanning: no; uiLoading: no; uiError: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <!-- 翠鳥去背圖（← 替換這裡：assets/bird.png） -->
+      <img id="birdImg" src="assets/bird.png" crossorigin="anonymous" />
+    </a-assets>
+
+    <!-- MindAR 相機 -->
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- targetIndex:0 對應 target.mind 中第一張圖 -->
+    <a-entity id="target" mindar-image-target="targetIndex: 0">
+
+      <!-- 翠鳥圖像 plane（A-Frame entity）
+           - 起始 opacity:0，targetFound 時觸發 'fadein' 事件淡入
+           - float：上下輕微浮動（循環，來回）
+           - pulse：微幅縮放（循環，來回）→ 合成 2.5D 效果 -->
+      <a-plane
+        id="bird"
+        src="#birdImg"
+        transparent="true"
+        material="alphaTest: 0.01; shader: flat"
+        position="0 0.15 0"
+        height="0.6" width="0.6"
+        opacity="0"
+        animation__fadein="property: opacity; from: 0; to: 1; dur: 600; easing: easeOutQuad; startEvents: fadein"
+        animation__float="property: position; from: 0 0.13 0; to: 0 0.22 0; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine"
+        animation__pulse="property: scale; from: 1 1 1; to: 1.06 1.06 1.06; dir: alternate; loop: true; dur: 1900; easing: easeInOutSine">
+      </a-plane>
+
+    </a-entity>
+  </a-scene>
+
+  <!-- ============================================================
+       翠鳥叫聲。JS 在 targetFound 時 play()；鎖定期間 targetLost 不暫停，
+       按 ✕ 關閉鈕時才 pause()。loop 循環播放；音量在 js 內依 content.js 設定。
+       （← 替換這裡：assets/call.mp3）
+       ============================================================ -->
+  <audio id="call" src="assets/call.mp3" loop preload="auto"></audio>
+
+  <!-- ============================================================
+       應用邏輯：開始鈕啟動 MindAR、targetFound/targetLost 事件、
+       把 content.js 的內容填入面板、控制音效播放。
+       ============================================================ -->
+  <script>
+    (function () {
+      var startScreen = document.getElementById('start-screen');
+      var startButton = document.getElementById('start-button');
+      var scanHint    = document.getElementById('scan-hint');
+      var sceneEl     = document.getElementById('ar-scene');
+      var audioEl     = document.getElementById('call');
+      var panelEl     = document.getElementById('panel');
+      var debugEl     = document.getElementById('debug');
+
+      // ---- 手機端狀態/錯誤顯示（顯示最近數行）----
+      var dbgLog = [];
+      function setStatus(msg) {
+        dbgLog.push(msg);
+        if (dbgLog.length > 6) dbgLog.shift();
+        if (debugEl) debugEl.textContent = dbgLog.join('\n');
+      }
+      // 全域錯誤 → debug 區塊
+      window.onerror = function (message, source, lineno) {
+        setStatus('JS錯誤: ' + message + (lineno ? (' @行' + lineno) : ''));
+      };
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e.reason || {};
+        setStatus('Promise錯誤: ' + (r.name || '') + ' ' + (r.message || r));
+      });
+      // MindAR 自身事件（相機/辨識就緒或失敗）
+      sceneEl.addEventListener('arReady', function () { setStatus('就緒，請對準圖卡'); });
+      sceneEl.addEventListener('arError', function (e) {
+        setStatus('AR 錯誤: ' + ((e.detail && e.detail.error) || 'unknown'));
+      });
+
+      // 目前選取的分眾（kids / general / advanced）
+      var currentAudience = 'general';
+
+      // ---- 把 content.js 的固定欄位填入解說面板 ----
+      function applyContent() {
+        var c = window.KINGFISHER_CONTENT || {};
+        function set(id, val) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = (val != null ? val : '');
+        }
+        // 中文名 + 別名
+        set('p-name', c.name);
+        set('p-alias', c.alias ? ('別名：' + c.alias) : '');
+        // 學名（斜體由 CSS 處理）+ 附註
+        set('p-sci', c.scientific);
+        set('p-sci-note', c.sciNote ? ('　' + c.sciNote) : '');
+        // 英文名
+        set('p-en', c.englishName);
+        // 分類、保育
+        set('p-taxo', c.taxonomy);
+        set('p-cons', c.conservation);
+
+        // 預設分眾 + 首次顯示解說
+        currentAudience = c.defaultAudience || 'general';
+        applyAudience(currentAudience);
+      }
+
+      // ---- 依分眾切換下方解說文字 + 更新按鈕 active 狀態 ----
+      function applyAudience(aud) {
+        var c = window.KINGFISHER_CONTENT || {};
+        var descs = c.descriptions || {};
+        currentAudience = aud;
+        var descEl = document.getElementById('p-desc');
+        if (descEl) descEl.textContent = descs[aud] || '';
+        var tabs = document.querySelectorAll('.p-tab');
+        for (var i = 0; i < tabs.length; i++) {
+          var on = tabs[i].getAttribute('data-aud') === aud;
+          tabs[i].classList.toggle('active', on);
+          tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+        }
+      }
+
+      // 綁定分眾切換鈕
+      function bindTabs() {
+        var tabs = document.querySelectorAll('.p-tab');
+        for (var i = 0; i < tabs.length; i++) {
+          tabs[i].addEventListener('click', function () {
+            applyAudience(this.getAttribute('data-aud'));
+          });
+        }
+      }
+
+      // 音量（0~1），可在 content.js 以 volume 覆寫
+      function applyAudioVolume() {
+        var c = window.KINGFISHER_CONTENT || {};
+        audioEl.volume = (typeof c.volume === 'number') ? c.volume : 0.6;
+      }
+
+      // ---- 啟動 MindAR（必須在使用者手勢中呼叫）----
+      async function start() {
+        applyContent();
+        applyAudioVolume();
+
+        // iOS：在使用者手勢中先「解鎖」音訊（播放後立即暫停）
+        audioEl.play().then(function () {
+          audioEl.pause();
+          audioEl.currentTime = 0;
+        }).catch(function () { /* 尚無音檔或被阻擋，略過 */ });
+
+        // 1) 在使用者手勢中，先明確以後置鏡頭(environment)請求相機權限。
+        //    這能確保 iOS 取得後置鏡頭並在手勢內完成授權；拿到後立即釋放，
+        //    交由 MindAR 開啟自己的相機（MindAR 內部同樣以 facingMode:"environment"，兩者對齊）。
+        //    iOS 同時只允許一路相機，故務必先 stop() 再啟動 MindAR。
+        setStatus('請求相機中…');
+        try {
+          var primeStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { ideal: 'environment' } }
+          });
+          setStatus('相機串流已取得');
+          primeStream.getTracks().forEach(function (t) { t.stop(); });
+        } catch (err) {
+          setStatus('相機錯誤: ' + err.name + ' — ' + err.message);
+          return; // 拿不到相機就不啟動 MindAR
+        }
+
+        // 2) 啟動 MindAR
+        setStatus('MindAR 啟動中');
+        var mindarSystem = sceneEl.systems['mindar-image-system'];
+        if (mindarSystem) {
+          try {
+            await mindarSystem.start();
+          } catch (err) {
+            setStatus('MindAR 啟動失敗: ' + (err.name || '') + ' — ' + (err.message || err));
+            return;
+          }
+        } else {
+          setStatus('找不到 mindar-image-system');
+          return;
+        }
+
+        // 就緒訊息由 scene 的 'arReady' 事件更新；此處先切換 UI。
+        startScreen.classList.add('hidden');
+        scanHint.classList.remove('hidden');
+      }
+
+      // ---- 面板鎖定狀態 ----
+      // locked=true：掃到目標後已顯示並鎖定，即使 targetLost 也不隱藏，
+      // 只有按下關閉鈕才會淡出並解鎖。
+      var locked = false;
+      var birdEl;
+
+      // 顯示（掃到目標時）
+      function showPanel() {
+        scanHint.classList.add('hidden');
+        birdEl.emit('fadein');              // 圖像淡入（animation 由 0→1）
+        panelEl.classList.remove('hidden');
+        panelEl.classList.add('show');      // 面板淡入（CSS transition）
+        audioEl.currentTime = 0;
+        audioEl.play().catch(function () {}); // 播放叫聲
+      }
+
+      // 關閉（使用者按 ✕ 時）：淡出、暫停音效、解除鎖定
+      function closePanel() {
+        locked = false;
+        birdEl.setAttribute('opacity', 0);  // 圖像淡出
+        panelEl.classList.remove('show');   // 面板淡出
+        audioEl.pause();                    // 暫停叫聲
+        scanHint.classList.remove('hidden'); // 提示可再次掃描
+      }
+
+      // ---- 綁定 MindAR 目標事件 ----
+      function bindTargetEvents() {
+        var targetEl = document.getElementById('target');
+        birdEl = document.getElementById('bird');
+
+        targetEl.addEventListener('targetFound', function () {
+          if (locked) return;   // 已鎖定顯示中，忽略重複觸發
+          locked = true;        // 一掃到就鎖定，之後 targetLost 不再隱藏
+          showPanel();
+        });
+
+        targetEl.addEventListener('targetLost', function () {
+          // 鎖定期間不隱藏、不暫停，讓使用者能繼續閱讀
+          // （面板只由 ✕ 關閉鈕關掉）
+        });
+      }
+
+      startButton.addEventListener('click', start);
+      bindTabs();
+      document.getElementById('p-close').addEventListener('click', closePanel);
+
+      if (sceneEl.hasLoaded) bindTargetEvents();
+      else sceneEl.addEventListener('loaded', bindTargetEvents);
+    })();
+  </script>
+</body>
+</html>
