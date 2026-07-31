@@ -97,21 +97,21 @@
     <!-- targetIndex:0 對應 target.mind 中第一張圖 -->
     <a-entity id="target" mindar-image-target="targetIndex: 0">
 
-      <!-- 翠鳥圖像 plane（A-Frame entity）
+      <!-- 翠鳥圖像 plane（A-Frame entity）— 縮小為右上角輕巧點綴
            - 起始 opacity:0，targetFound 時觸發 'fadein' 事件淡入
-           - float：上下輕微浮動（循環，來回）
-           - pulse：微幅縮放（循環，來回）→ 合成 2.5D 效果 -->
+           - float：低調的上下浮動（幅度縮小）
+           - pulse：極微幅縮放 → 自然呼吸感，非主角 -->
       <a-plane
         id="bird"
         src="#birdImg"
         transparent="true"
         material="alphaTest: 0.01; shader: flat"
-        position="0 0.15 0"
-        height="0.6" width="0.6"
+        position="0.34 0.40 0"
+        height="0.26" width="0.26"
         opacity="0"
         animation__fadein="property: opacity; from: 0; to: 1; dur: 600; easing: easeOutQuad; startEvents: fadein"
-        animation__float="property: position; from: 0 0.13 0; to: 0 0.22 0; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine"
-        animation__pulse="property: scale; from: 1 1 1; to: 1.06 1.06 1.06; dir: alternate; loop: true; dur: 1900; easing: easeInOutSine">
+        animation__float="property: position; from: 0.34 0.40 0; to: 0.34 0.45 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine"
+        animation__pulse="property: scale; from: 1 1 1; to: 1.03 1.03 1.03; dir: alternate; loop: true; dur: 2200; easing: easeInOutSine">
       </a-plane>
 
     </a-entity>

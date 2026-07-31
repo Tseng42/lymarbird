@@ -3,6 +3,20 @@
    ============================================================ */
 * { box-sizing: border-box; }
 
+/* ============================================================
+   色彩 tokens：通透白／米白 + 翠鳥青藍重點色 + 克制的暖橙
+   ============================================================ */
+:root {
+  --kf-blue:      #2E9FD8;   /* 翠鳥青藍：active／重點色 */
+  --kf-blue-d:    #1F7FB0;   /* 深一階青藍：連結／學名文字 */
+  --kf-ink:       #223642;   /* 主要文字：深藍灰，白底上對比足夠 */
+  --kf-ink-soft:  #52707E;   /* 次要文字 */
+  --kf-orange:    #C0703A;   /* 腹面暖橙（深化以確保可讀），克制使用 */
+  --glass:        rgba(255, 255, 255, 0.66); /* 淡色毛玻璃白底 */
+  --glass-veil:   rgba(255, 255, 255, 0.38); /* 疊加極淡白遮罩，襯托文字 */
+  --glass-border: rgba(255, 255, 255, 0.75); /* 細緻半透明白邊 */
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -50,9 +64,9 @@ html, body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #fff;
-  /* 翠鳥藍綠色系漸層背景 */
-  background: radial-gradient(circle at 50% 35%, #12586e 0%, #08222c 70%, #041318 100%);
+  color: var(--kf-ink);
+  /* 通透淺色漸層：白 → 淡青藍，呼應白牆展場 */
+  background: radial-gradient(circle at 50% 32%, #ffffff 0%, #eaf6fc 55%, #d6ecf7 100%);
 }
 
 #start-inner { padding: 24px; max-width: 90vw; }
@@ -62,35 +76,36 @@ html, body {
   font-weight: 800;
   margin: 0 0 8px;
   letter-spacing: 2px;
+  color: var(--kf-ink);
 }
 
 #start-subtitle {
   font-size: 1.05rem;
   margin: 0 0 32px;
-  color: #bfe9f5;
+  color: var(--kf-ink-soft);
 }
 
 #start-button {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #06232d;
-  background: linear-gradient(180deg, #7fe3ff 0%, #38b6d8 100%);
+  color: #ffffff;
+  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
   border: none;
   border-radius: 999px;
   padding: 16px 40px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(56, 182, 216, 0.45);
+  box-shadow: 0 6px 20px rgba(46, 159, 216, 0.35);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 #start-button:active {
   transform: scale(0.96);
-  box-shadow: 0 3px 12px rgba(56, 182, 216, 0.4);
+  box-shadow: 0 3px 12px rgba(46, 159, 216, 0.3);
 }
 
 #start-hint {
   margin-top: 22px;
   font-size: 0.85rem;
-  color: #8fb9c6;
+  color: var(--kf-ink-soft);
 }
 
 /* ============================================================
@@ -98,16 +113,19 @@ html, body {
    ============================================================ */
 #scan-hint {
   position: fixed;
-  top: 24px;
+  top: 60px;                       /* 讓開 debug 疊層 */
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
   padding: 10px 20px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #eafaff;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--kf-ink);
   font-size: 0.95rem;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 18px rgba(30, 60, 80, 0.12);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);  /* iOS 必備前綴 */
+  backdrop-filter: blur(12px) saturate(120%);
   animation: pulseHint 1.6s ease-in-out infinite;
 }
 @keyframes pulseHint {
@@ -116,7 +134,11 @@ html, body {
 }
 
 /* ============================================================
-   解說面板（DOM 疊層）：深色半透明底、白字，直式底部固定
+   解說面板（DOM 疊層）：淡色毛玻璃、深色文字，直式底部固定
+   ------------------------------------------------------------
+   毛玻璃 = 半透明白底 + backdrop-filter 模糊。iOS Safari 需同時
+   寫 -webkit-backdrop-filter，否則模糊會失效。底層再疊一層極淡
+   白色遮罩（--glass-veil，用漸層實作）襯托文字、確保可讀。
    ============================================================ */
 #panel {
   position: fixed;
@@ -126,12 +148,16 @@ html, body {
   z-index: 20;
   width: min(92vw, 460px);
   padding: 18px 20px 20px;
-  border-radius: 18px;
-  background: rgba(6, 24, 32, 0.82);
-  border: 1px solid rgba(127, 227, 255, 0.25);
-  color: #ffffff;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  border-radius: 20px;                 /* 柔和圓角 */
+  /* 半透明白底 + 疊一層極淡白遮罩（漸層）以襯托文字 */
+  background:
+    linear-gradient(var(--glass-veil), var(--glass-veil)),
+    var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--kf-ink);
+  box-shadow: 0 10px 34px rgba(30, 60, 80, 0.18);  /* 輕柔浮起感 */
+  -webkit-backdrop-filter: blur(20px) saturate(125%);  /* iOS 必備前綴 */
+  backdrop-filter: blur(20px) saturate(125%);
   /* 淡入淡出 */
   opacity: 0;
   pointer-events: none;
@@ -147,25 +173,26 @@ html, body {
   font-size: 1.5rem;
   font-weight: 800;
   line-height: 1.2;
+  color: var(--kf-ink);
   padding-right: 44px;   /* 避開右上角關閉鈕 */
 }
 #p-alias {
   margin-top: 2px;
   font-size: 0.85rem;
-  color: #bfe9f5;
+  color: var(--kf-ink-soft);
   padding-right: 44px;   /* 避開右上角關閉鈕 */
 }
 #p-sci-line {
   margin-top: 4px;
   font-size: 0.98rem;
-  color: #9fe3ff;
+  color: var(--kf-blue-d);
 }
 #p-sci { font-style: italic; }        /* 學名斜體 */
-#p-sci-note { font-style: normal; font-size: 0.85rem; color: #7fbcd0; }
+#p-sci-note { font-style: normal; font-size: 0.85rem; color: var(--kf-ink-soft); }
 #p-en {
   margin-top: 2px;
   font-size: 0.85rem;
-  color: #8fb9c6;
+  color: var(--kf-ink-soft);
 }
 
 .p-row {
@@ -174,19 +201,22 @@ html, body {
   gap: 10px;
   margin-top: 10px;
   font-size: 0.98rem;
+  color: var(--kf-ink);
 }
+/* 分類／保育：淺青藍膠囊 */
 .p-label {
   flex: 0 0 auto;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #06232d;
-  background: #7fe3ff;
-  border-radius: 6px;
+  color: var(--kf-blue-d);
+  background: rgba(46, 159, 216, 0.14);
+  border: 1px solid rgba(46, 159, 216, 0.28);
+  border-radius: 8px;
   padding: 2px 8px;
 }
-#p-cons { color: #ffd98a; font-weight: 600; }
+#p-cons { color: var(--kf-orange); font-weight: 700; }  /* 保育：克制的暖橙點綴 */
 
-/* 分眾切換鈕：親子／一般／進階 */
+/* 分眾切換鈕：親子／一般／進階（淺底，active 用青藍） */
 #p-tabs {
   display: flex;
   gap: 8px;
@@ -197,9 +227,9 @@ html, body {
   min-height: 40px;               /* 手機好按 */
   font-size: 0.95rem;
   font-weight: 700;
-  color: #cfeefb;
-  background: rgba(127, 227, 255, 0.12);
-  border: 1px solid rgba(127, 227, 255, 0.35);
+  color: var(--kf-blue-d);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(46, 159, 216, 0.35);
   border-radius: 10px;
   cursor: pointer;
   pointer-events: auto;           /* 確保可點（即使父層曾設 none） */
@@ -207,16 +237,17 @@ html, body {
 }
 .p-tab:active { transform: scale(0.96); }
 .p-tab.active {
-  color: #06232d;
-  background: linear-gradient(180deg, #7fe3ff 0%, #38b6d8 100%);
-  border-color: #7fe3ff;
+  color: #ffffff;
+  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
+  border-color: var(--kf-blue);
+  box-shadow: 0 3px 10px rgba(46, 159, 216, 0.35);
 }
 
 #p-desc {
   margin: 14px 0 0;
   font-size: 1rem;
-  line-height: 1.55;
-  color: #eafaff;
+  line-height: 1.6;
+  color: var(--kf-ink);
 }
 
 /* 關閉按鈕（面板右上角，好按） */
@@ -228,18 +259,18 @@ html, body {
   height: 40px;
   line-height: 38px;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #eafaff;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(127, 227, 255, 0.4);
+  color: var(--kf-ink);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(46, 159, 216, 0.35);
   border-radius: 50%;
   cursor: pointer;
   pointer-events: auto;           /* 確保可點 */
   transition: background 0.15s ease, transform 0.1s ease;
 }
 #p-close:active { transform: scale(0.92); }
-#p-close:hover { background: rgba(255, 255, 255, 0.22); }
+#p-close:hover { background: rgba(255, 255, 255, 0.8); }
 
 /* ============================================================
    顯示圖層（由底到頂）：
