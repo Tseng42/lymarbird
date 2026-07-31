@@ -9,7 +9,10 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #000;
+  /* 必須透明：MindAR 把相機 <video>（z-index:-2）注入 <body>，
+     iOS Safari 會把負 z-index 元素畫在「body/html 背景之後」，
+     若這裡是 #000 就會蓋住相機畫面造成黑屏。 */
+  background: transparent;
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei",
                "Helvetica Neue", Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -238,9 +241,24 @@ html, body {
 #p-close:active { transform: scale(0.92); }
 #p-close:hover { background: rgba(255, 255, 255, 0.22); }
 
-/* A-Frame 場景鋪滿背景 */
+/* ============================================================
+   顯示圖層（由底到頂）：
+     相機 video (body 子節點, z-index:-2, 可見)
+       → A-Frame canvas (透明, 只畫 3D 內容)
+         → HTML 疊層 (#panel / #scan-hint / #debug)
+   ------------------------------------------------------------
+   注意：不要在 a-scene 設 position+z-index / opacity / transform，
+   那會建立 stacking context 把相機 video 困住，iOS Safari 特別敏感。
+   ============================================================ */
 a-scene {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
+  background: transparent !important;   /* 場景本身不要不透明底 */
+}
+/* A-Frame canvas 保持透明（renderer 預設 alpha:true），不要用不透明色蓋掉相機 */
+a-scene .a-canvas,
+canvas.a-canvas {
+  background-color: transparent !important;
+}
+/* MindAR 動態注入的相機 <video>（<body> 直接子節點）：固定鋪滿、置於最底可見層 */
+body > video {
+  position: fixed !important;
 }
