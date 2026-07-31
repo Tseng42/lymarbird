@@ -49,82 +49,19 @@
        只有按右上角 ✕ 關閉鈕才淡出。內容由 js/content.js 於執行時填入。
        ============================================================ -->
   <div id="panel" class="hidden">
-    <!-- 關閉按鈕：按下才淡出面板/翠鳥、暫停音效並解除鎖定 -->
+    <!-- 關閉按鈕：按下才淡出面板、暫停音效並解除鎖定 -->
     <button id="p-close" aria-label="關閉">✕</button>
-    <!-- 固定顯示：中文名（＋別名）、學名（斜體）＋附註、英文名、分類、保育等級 -->
+
+    <!-- 主畫面（固定顯示，簡潔）：中文名（大字）、學名（斜體）＋附註、英文名 -->
     <div id="p-name"></div>
-    <div id="p-alias"></div>
     <div id="p-sci-line">
       <span id="p-sci"></span><span id="p-sci-note"></span>
     </div>
     <div id="p-en"></div>
-    <div class="p-row"><span class="p-label">分類</span><span id="p-taxo"></span></div>
-    <div class="p-row"><span class="p-label">保育</span><span id="p-cons"></span></div>
 
-    <!-- 分眾切換鈕：親子／一般／進階 -->
-    <div id="p-tabs" role="tablist">
-      <button class="p-tab" data-aud="kids">親子</button>
-      <button class="p-tab" data-aud="general">一般</button>
-      <button class="p-tab" data-aud="advanced">進階</button>
-    </div>
-
-    <!-- 隨切換鈕變動的解說文字 -->
-    <p id="p-desc"></p>
-  </div>
-
-  <!-- ============================================================
-       角落翠鳥點綴：inline SVG 向量插畫（免外部素材、可無限縮放清晰）。
-       普通翠鳥 Alcedo atthis 特徵：青藍金屬色頭頂與背部、橙紅腹面與臉頰、
-       白色喉斑、又長又直又尖的近黑色喙、圓胖大頭短尾比例、深色小眼與腳。
-       固定於畫面左下角、輕微上下浮動；隨面板一起淡入(.show)、關閉時淡出。
-       pointer-events:none → 純裝飾，絕不攔截面板或關閉鈕的點擊。
-       ============================================================ -->
-  <div id="bird-deco" aria-hidden="true">
-    <svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- 頭頂／背部：亮寶藍→青綠→深藍的金屬漸層 -->
-        <linearGradient id="kfBack" x1="0.28" y1="0" x2="0.72" y2="1">
-          <stop offset="0"    stop-color="#5fe0ea"/>
-          <stop offset="0.42" stop-color="#2E9FD8"/>
-          <stop offset="1"    stop-color="#17539f"/>
-        </linearGradient>
-        <!-- 腹面：橙紅漸層 -->
-        <linearGradient id="kfBelly" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#f4ac66"/>
-          <stop offset="1" stop-color="#cf5626"/>
-        </linearGradient>
-      </defs>
-
-      <!-- 短尾（藏於身體後方，深青藍） -->
-      <path d="M78 66 L107 82 L92 92 L74 82 Z" fill="#17539f"/>
-
-      <!-- 圓胖身體（青藍） -->
-      <ellipse cx="64" cy="72" rx="30" ry="31" fill="url(#kfBack)"/>
-      <!-- 大頭短頸（與身體相連，青藍） -->
-      <ellipse cx="47" cy="43" rx="25" ry="23" fill="url(#kfBack)"/>
-      <!-- 折翼暗部（低調層次） -->
-      <ellipse cx="75" cy="70" rx="15" ry="21" fill="#1766bf" opacity="0.45"/>
-
-      <!-- 腹面／前胸（橙紅） -->
-      <ellipse cx="50" cy="80" rx="22" ry="22" fill="url(#kfBelly)"/>
-      <!-- 臉頰下方（橙紅） -->
-      <ellipse cx="43" cy="53" rx="13" ry="11" fill="url(#kfBelly)"/>
-
-      <!-- 白色喉斑 -->
-      <ellipse cx="33" cy="57" rx="8" ry="9" fill="#fdfeff"/>
-
-      <!-- 喙：又長又直又尖、近黑（上下兩片以深淺區分） -->
-      <path d="M5 47 L35 39 L35 47 Z" fill="#26363f"/>
-      <path d="M5 47 L35 47 L35 53 Z" fill="#101b21"/>
-
-      <!-- 眼睛：深色小眼 + 反光點 -->
-      <circle cx="43"   cy="39"   r="4.6" fill="#14202a"/>
-      <circle cx="44.5" cy="37.5" r="1.4" fill="#eaf7ff"/>
-
-      <!-- 腳：深色小腳（兩隻） -->
-      <path d="M49 97 l0 8 M45 105 l8 0 M59 97 l0 8 M55 105 l8 0"
-            stroke="#20303a" stroke-width="2.6" stroke-linecap="round" fill="none"/>
-    </svg>
+    <!-- 六個手風琴項目：由 js/content.js 的 sections 動態產生。
+         點按鈕在其下方展開該項 body；一次只展開一項，再點同一個收合。 -->
+    <div id="p-accordion"></div>
   </div>
 
   <!-- ============================================================
@@ -146,8 +83,8 @@
 
     <!-- targetIndex:0 對應 target.mind 中第一張圖。
          此 entity 僅用來接收 targetFound / targetLost 事件；
-         視覺上的翠鳥改由畫面左下角的 inline SVG（見 #bird-deco）呈現，
-         不再使用 A-Frame 3D plane 與 assets/bird.png（該檔保留備用）。 -->
+         視覺呈現全部改由 HTML 疊層面板負責，AR 場景不再放 3D 物件
+         （assets/bird.png 已停用，檔案保留備用）。 -->
     <a-entity id="target" mindar-image-target="targetIndex: 0"></a-entity>
   </a-scene>
 
@@ -171,7 +108,7 @@
       var audioEl     = document.getElementById('call');
       var panelEl     = document.getElementById('panel');
       var debugEl     = document.getElementById('debug');
-      var birdDeco    = document.getElementById('bird-deco');  // 角落 SVG 翠鳥
+      var accWrap     = document.getElementById('p-accordion');
 
       // ---- 手機端狀態/錯誤顯示（顯示最近數行）----
       var dbgLog = [];
@@ -194,56 +131,86 @@
         setStatus('AR 錯誤: ' + ((e.detail && e.detail.error) || 'unknown'));
       });
 
-      // 目前選取的分眾（kids / general / advanced）
-      var currentAudience = 'general';
-
-      // ---- 把 content.js 的固定欄位填入解說面板 ----
-      function applyContent() {
+      // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
+      function getBird() {
         var c = window.KINGFISHER_CONTENT || {};
+        var birds = c.birds || {};
+        return birds[c.activeBird] || {};
+      }
+
+      // ---- 把鳥種主畫面欄位填入面板，並建立六個手風琴項目 ----
+      function applyContent() {
+        var bird = getBird();
         function set(id, val) {
           var el = document.getElementById(id);
           if (el) el.textContent = (val != null ? val : '');
         }
-        // 中文名 + 別名
-        set('p-name', c.name);
-        set('p-alias', c.alias ? ('別名：' + c.alias) : '');
-        // 學名（斜體由 CSS 處理）+ 附註
-        set('p-sci', c.scientific);
-        set('p-sci-note', c.sciNote ? ('　' + c.sciNote) : '');
-        // 英文名
-        set('p-en', c.englishName);
-        // 分類、保育
-        set('p-taxo', c.taxonomy);
-        set('p-cons', c.conservation);
+        // 主畫面：中文名（大字）、學名（斜體由 CSS 處理）＋附註、英文名
+        set('p-name', bird.name);
+        set('p-sci', bird.sciName);
+        set('p-sci-note', bird.sciNote ? ('　' + bird.sciNote) : '');
+        set('p-en', bird.enName);
 
-        // 預設分眾 + 首次顯示解說
-        currentAudience = c.defaultAudience || 'general';
-        applyAudience(currentAudience);
+        buildAccordion(bird.sections || []);
       }
 
-      // ---- 依分眾切換下方解說文字 + 更新按鈕 active 狀態 ----
-      function applyAudience(aud) {
-        var c = window.KINGFISHER_CONTENT || {};
-        var descs = c.descriptions || {};
-        currentAudience = aud;
-        var descEl = document.getElementById('p-desc');
-        if (descEl) descEl.textContent = descs[aud] || '';
-        var tabs = document.querySelectorAll('.p-tab');
-        for (var i = 0; i < tabs.length; i++) {
-          var on = tabs[i].getAttribute('data-aud') === aud;
-          tabs[i].classList.toggle('active', on);
-          tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
-        }
+      // ---- 手風琴 ----
+      // 依 sections 動態產生「按鈕 + 可展開內文」；一次只展開一項。
+      var accItems = [];      // [{ item, btn, body }]
+      var openIndex = -1;     // 目前展開的索引，-1 為全部收合
+
+      function buildAccordion(sections) {
+        accWrap.innerHTML = '';
+        accItems = [];
+        openIndex = -1;
+
+        sections.forEach(function (sec, idx) {
+          var item = document.createElement('div');
+          item.className = 'acc-item';
+
+          var btn = document.createElement('button');
+          btn.className = 'acc-btn';
+          btn.type = 'button';
+          btn.textContent = sec.title || '';
+          btn.setAttribute('aria-expanded', 'false');
+          btn.addEventListener('click', function () { toggleItem(idx); });
+
+          var body = document.createElement('div');
+          body.className = 'acc-body';
+          var inner = document.createElement('div');
+          inner.className = 'acc-body-inner';
+          inner.textContent = sec.body || '';
+          body.appendChild(inner);
+
+          item.appendChild(btn);
+          item.appendChild(body);
+          accWrap.appendChild(item);
+          accItems.push({ item: item, btn: btn, body: body });
+        });
       }
 
-      // 綁定分眾切換鈕
-      function bindTabs() {
-        var tabs = document.querySelectorAll('.p-tab');
-        for (var i = 0; i < tabs.length; i++) {
-          tabs[i].addEventListener('click', function () {
-            applyAudience(this.getAttribute('data-aud'));
-          });
+      function openItem(i) {
+        var it = accItems[i];
+        it.item.classList.add('open');
+        it.btn.setAttribute('aria-expanded', 'true');
+        // 設為實際內容高度 → max-height transition 平順展開
+        it.body.style.maxHeight = it.body.scrollHeight + 'px';
+      }
+      function closeItem(i) {
+        var it = accItems[i];
+        it.item.classList.remove('open');
+        it.btn.setAttribute('aria-expanded', 'false');
+        it.body.style.maxHeight = '';   // 回到 CSS 的 0 → 平順收合
+      }
+      function toggleItem(idx) {
+        if (openIndex === idx) {        // 再點同一個 → 收合
+          closeItem(idx);
+          openIndex = -1;
+          return;
         }
+        if (openIndex !== -1) closeItem(openIndex);  // 自動收起前一個
+        openItem(idx);
+        openIndex = idx;
       }
 
       // 音量（0~1），可在 content.js 以 volume 覆寫
@@ -308,7 +275,6 @@
       // 顯示（掃到目標時）
       function showPanel() {
         scanHint.classList.add('hidden');
-        if (birdDeco) birdDeco.classList.add('show'); // 角落 SVG 翠鳥淡入
         panelEl.classList.remove('hidden');
         panelEl.classList.add('show');      // 面板淡入（CSS transition）
         audioEl.currentTime = 0;
@@ -318,7 +284,6 @@
       // 關閉（使用者按 ✕ 時）：淡出、暫停音效、解除鎖定
       function closePanel() {
         locked = false;
-        if (birdDeco) birdDeco.classList.remove('show'); // 角落翠鳥淡出
         panelEl.classList.remove('show');   // 面板淡出
         audioEl.pause();                    // 暫停叫聲
         scanHint.classList.remove('hidden'); // 提示可再次掃描
@@ -341,7 +306,6 @@
       }
 
       startButton.addEventListener('click', start);
-      bindTabs();
       document.getElementById('p-close').addEventListener('click', closePanel);
 
       if (sceneEl.hasLoaded) bindTargetEvents();
