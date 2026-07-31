@@ -273,6 +273,33 @@ html, body {
 #p-close:hover { background: rgba(255, 255, 255, 0.8); }
 
 /* ============================================================
+   角落翠鳥點綴（inline SVG）：固定畫面左下角、輕微上下浮動。
+   left/bottom 使用 env(safe-area-inset) 讓開 iPhone 瀏海／圓角。
+   放左下 → 與面板右上角的關閉鈕(✕)呈對角，互不干擾；
+   pointer-events:none → 純裝飾，永遠不攔截點擊。
+   ============================================================ */
+#bird-deco {
+  position: fixed;
+  left: max(14px, env(safe-area-inset-left, 14px));
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  z-index: 21;                 /* 疊在面板之上，像停棲在角落 */
+  width: 68px;
+  height: 68px;
+  opacity: 0;                  /* 預設隱藏，掃到目標時隨面板淡入 */
+  pointer-events: none;        /* 純裝飾，絕不攔截面板/關閉鈕點擊 */
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 3px 6px rgba(20, 50, 70, 0.28));
+  animation: birdFloat 3.2s ease-in-out infinite;  /* 輕微上下浮動 */
+  will-change: transform, opacity;
+}
+#bird-deco.show { opacity: 1; }
+#bird-deco svg { display: block; width: 100%; height: 100%; }
+@keyframes birdFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* ============================================================
    顯示圖層（由底到頂）：
      相機 video (body 子節點, z-index:-2, 可見)
        → A-Frame canvas (透明, 只畫 3D 內容)

@@ -73,6 +73,61 @@
   </div>
 
   <!-- ============================================================
+       角落翠鳥點綴：inline SVG 向量插畫（免外部素材、可無限縮放清晰）。
+       普通翠鳥 Alcedo atthis 特徵：青藍金屬色頭頂與背部、橙紅腹面與臉頰、
+       白色喉斑、又長又直又尖的近黑色喙、圓胖大頭短尾比例、深色小眼與腳。
+       固定於畫面左下角、輕微上下浮動；隨面板一起淡入(.show)、關閉時淡出。
+       pointer-events:none → 純裝飾，絕不攔截面板或關閉鈕的點擊。
+       ============================================================ -->
+  <div id="bird-deco" aria-hidden="true">
+    <svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- 頭頂／背部：亮寶藍→青綠→深藍的金屬漸層 -->
+        <linearGradient id="kfBack" x1="0.28" y1="0" x2="0.72" y2="1">
+          <stop offset="0"    stop-color="#5fe0ea"/>
+          <stop offset="0.42" stop-color="#2E9FD8"/>
+          <stop offset="1"    stop-color="#17539f"/>
+        </linearGradient>
+        <!-- 腹面：橙紅漸層 -->
+        <linearGradient id="kfBelly" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f4ac66"/>
+          <stop offset="1" stop-color="#cf5626"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 短尾（藏於身體後方，深青藍） -->
+      <path d="M78 66 L107 82 L92 92 L74 82 Z" fill="#17539f"/>
+
+      <!-- 圓胖身體（青藍） -->
+      <ellipse cx="64" cy="72" rx="30" ry="31" fill="url(#kfBack)"/>
+      <!-- 大頭短頸（與身體相連，青藍） -->
+      <ellipse cx="47" cy="43" rx="25" ry="23" fill="url(#kfBack)"/>
+      <!-- 折翼暗部（低調層次） -->
+      <ellipse cx="75" cy="70" rx="15" ry="21" fill="#1766bf" opacity="0.45"/>
+
+      <!-- 腹面／前胸（橙紅） -->
+      <ellipse cx="50" cy="80" rx="22" ry="22" fill="url(#kfBelly)"/>
+      <!-- 臉頰下方（橙紅） -->
+      <ellipse cx="43" cy="53" rx="13" ry="11" fill="url(#kfBelly)"/>
+
+      <!-- 白色喉斑 -->
+      <ellipse cx="33" cy="57" rx="8" ry="9" fill="#fdfeff"/>
+
+      <!-- 喙：又長又直又尖、近黑（上下兩片以深淺區分） -->
+      <path d="M5 47 L35 39 L35 47 Z" fill="#26363f"/>
+      <path d="M5 47 L35 47 L35 53 Z" fill="#101b21"/>
+
+      <!-- 眼睛：深色小眼 + 反光點 -->
+      <circle cx="43"   cy="39"   r="4.6" fill="#14202a"/>
+      <circle cx="44.5" cy="37.5" r="1.4" fill="#eaf7ff"/>
+
+      <!-- 腳：深色小腳（兩隻） -->
+      <path d="M49 97 l0 8 M45 105 l8 0 M59 97 l0 8 M55 105 l8 0"
+            stroke="#20303a" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- ============================================================
        AR 場景。autoStart:false → 由 JS 在按下開始鈕後才 start。
        uiScanning / uiLoading 關掉 MindAR 內建 UI，改用我們自己的提示。
        ============================================================ -->
@@ -86,35 +141,14 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-    <a-assets>
-      <!-- 翠鳥去背圖（← 替換這裡：assets/bird.png） -->
-      <img id="birdImg" src="assets/bird.png" crossorigin="anonymous" />
-    </a-assets>
-
     <!-- MindAR 相機 -->
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- targetIndex:0 對應 target.mind 中第一張圖 -->
-    <a-entity id="target" mindar-image-target="targetIndex: 0">
-
-      <!-- 翠鳥圖像 plane（A-Frame entity）— 縮小為右上角輕巧點綴
-           - 起始 opacity:0，targetFound 時觸發 'fadein' 事件淡入
-           - float：低調的上下浮動（幅度縮小）
-           - pulse：極微幅縮放 → 自然呼吸感，非主角 -->
-      <a-plane
-        id="bird"
-        src="#birdImg"
-        transparent="true"
-        material="alphaTest: 0.01; shader: flat"
-        position="0.34 0.40 0"
-        height="0.26" width="0.26"
-        opacity="0"
-        animation__fadein="property: opacity; from: 0; to: 1; dur: 600; easing: easeOutQuad; startEvents: fadein"
-        animation__float="property: position; from: 0.34 0.40 0; to: 0.34 0.45 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine"
-        animation__pulse="property: scale; from: 1 1 1; to: 1.03 1.03 1.03; dir: alternate; loop: true; dur: 2200; easing: easeInOutSine">
-      </a-plane>
-
-    </a-entity>
+    <!-- targetIndex:0 對應 target.mind 中第一張圖。
+         此 entity 僅用來接收 targetFound / targetLost 事件；
+         視覺上的翠鳥改由畫面左下角的 inline SVG（見 #bird-deco）呈現，
+         不再使用 A-Frame 3D plane 與 assets/bird.png（該檔保留備用）。 -->
+    <a-entity id="target" mindar-image-target="targetIndex: 0"></a-entity>
   </a-scene>
 
   <!-- ============================================================
@@ -137,6 +171,7 @@
       var audioEl     = document.getElementById('call');
       var panelEl     = document.getElementById('panel');
       var debugEl     = document.getElementById('debug');
+      var birdDeco    = document.getElementById('bird-deco');  // 角落 SVG 翠鳥
 
       // ---- 手機端狀態/錯誤顯示（顯示最近數行）----
       var dbgLog = [];
@@ -269,12 +304,11 @@
       // locked=true：掃到目標後已顯示並鎖定，即使 targetLost 也不隱藏，
       // 只有按下關閉鈕才會淡出並解鎖。
       var locked = false;
-      var birdEl;
 
       // 顯示（掃到目標時）
       function showPanel() {
         scanHint.classList.add('hidden');
-        birdEl.emit('fadein');              // 圖像淡入（animation 由 0→1）
+        if (birdDeco) birdDeco.classList.add('show'); // 角落 SVG 翠鳥淡入
         panelEl.classList.remove('hidden');
         panelEl.classList.add('show');      // 面板淡入（CSS transition）
         audioEl.currentTime = 0;
@@ -284,7 +318,7 @@
       // 關閉（使用者按 ✕ 時）：淡出、暫停音效、解除鎖定
       function closePanel() {
         locked = false;
-        birdEl.setAttribute('opacity', 0);  // 圖像淡出
+        if (birdDeco) birdDeco.classList.remove('show'); // 角落翠鳥淡出
         panelEl.classList.remove('show');   // 面板淡出
         audioEl.pause();                    // 暫停叫聲
         scanHint.classList.remove('hidden'); // 提示可再次掃描
@@ -293,7 +327,6 @@
       // ---- 綁定 MindAR 目標事件 ----
       function bindTargetEvents() {
         var targetEl = document.getElementById('target');
-        birdEl = document.getElementById('bird');
 
         targetEl.addEventListener('targetFound', function () {
           if (locked) return;   // 已鎖定顯示中，忽略重複觸發
