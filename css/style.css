@@ -15,6 +15,9 @@
   --glass:        rgba(255, 255, 255, 0.66); /* 淡色毛玻璃白底 */
   --glass-veil:   rgba(255, 255, 255, 0.38); /* 疊加極淡白遮罩，襯托文字 */
   --glass-border: rgba(255, 255, 255, 0.75); /* 細緻半透明白邊 */
+
+  /* 面板文字縮放（無障礙大字模式）：標準 1、大字約 1.25，由 JS 切換 */
+  --panel-font-scale: 1;
 }
 
 html, body {
@@ -33,25 +36,6 @@ html, body {
 }
 
 .hidden { display: none !important; }
-
-/* ============================================================
-   手機端 DEBUG 區塊（固定螢幕上方，半透明黑底白字）
-   確認穩定後可移除此段與 index.html 中的 #debug。
-   pointer-events:none → 不擋下方按鈕點擊。
-   ============================================================ */
-#debug {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.62);
-  color: #eafaff;
-  font: 12px/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  white-space: pre-wrap;
-  pointer-events: none;
-}
 
 /* ============================================================
    開始畫面（全螢幕遮罩 + 置中按鈕）
@@ -113,7 +97,7 @@ html, body {
    ============================================================ */
 #scan-hint {
   position: fixed;
-  top: 60px;                       /* 讓開 debug 疊層 */
+  top: 60px;                       /* 避開頂端狀態列/瀏海 */
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -172,23 +156,24 @@ html, body {
   pointer-events: auto;   /* 顯示時才接收觸控/點擊，隱藏時 none 不擋畫面 */
 }
 
+/* 面板內文字級皆乘上 --panel-font-scale，供大字模式整體放大 */
 #p-name {
-  font-size: 1.5rem;
+  font-size: calc(1.5rem * var(--panel-font-scale));
   font-weight: 800;
   line-height: 1.2;
   color: var(--kf-ink);
-  padding-right: 44px;   /* 避開右上角關閉鈕 */
+  padding-right: 108px;  /* 避開右上角字級鈕 + 關閉鈕 */
 }
 #p-sci-line {
   margin-top: 4px;
-  font-size: 0.98rem;
+  font-size: calc(0.98rem * var(--panel-font-scale));
   color: var(--kf-blue-d);
 }
 #p-sci { font-style: italic; }        /* 學名斜體 */
-#p-sci-note { font-style: normal; font-size: 0.85rem; color: var(--kf-ink-soft); }
+#p-sci-note { font-style: normal; font-size: calc(0.85rem * var(--panel-font-scale)); color: var(--kf-ink-soft); }
 #p-en {
   margin-top: 2px;
-  font-size: 0.85rem;
+  font-size: calc(0.85rem * var(--panel-font-scale));
   color: var(--kf-ink-soft);
 }
 
@@ -215,7 +200,7 @@ html, body {
   min-height: 48px;               /* 手機好點 */
   padding: 12px 16px;
   text-align: left;
-  font-size: 1.02rem;
+  font-size: calc(1.02rem * var(--panel-font-scale));
   font-weight: 700;
   color: var(--kf-blue-d);
   background: rgba(255, 255, 255, 0.55);
@@ -258,9 +243,35 @@ html, body {
 }
 .acc-body-inner {
   padding: 14px 16px 16px;
-  font-size: 1.02rem;             /* 內文字級足夠大 */
+  font-size: calc(1.02rem * var(--panel-font-scale));  /* 內文字級，大字模式再放大 */
   line-height: 1.8;               /* 行距寬鬆好讀 */
   color: var(--kf-ink);
+}
+
+/* 字級切換鈕（面板右上角，關閉鈕左側）：本身字級固定，不隨大字模式縮放 */
+#p-font {
+  position: absolute;
+  top: 10px;
+  right: 58px;
+  height: 40px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--kf-blue-d);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(46, 159, 216, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;           /* 確保可點 */
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+#p-font:active { transform: scale(0.94); }
+#p-font:hover { background: rgba(255, 255, 255, 0.8); }
+/* 大字模式啟用中：以翠鳥青藍漸層當 active 樣式 */
+#p-font[aria-pressed="true"] {
+  color: #ffffff;
+  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
+  border-color: var(--kf-blue);
 }
 
 /* 關閉按鈕（面板右上角，好按） */
@@ -289,7 +300,7 @@ html, body {
    顯示圖層（由底到頂）：
      相機 video (body 子節點, z-index:-2, 可見)
        → A-Frame canvas (透明, 只畫 3D 內容)
-         → HTML 疊層 (#panel / #scan-hint / #debug)
+         → HTML 疊層 (#panel / #scan-hint)
    ------------------------------------------------------------
    注意：不要在 a-scene 設 position+z-index / opacity / transform，
    那會建立 stacking context 把相機 video 困住，iOS Safari 特別敏感。

@@ -13,17 +13,11 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js"></script>
+  <script src="js/content.js?v=9"></script>
 </head>
 <body>
-
-  <!-- ============================================================
-       手機端 DEBUG 區塊：顯示相機/AR 流程狀態與錯誤（error.name / message）。
-       確認穩定後可整塊移除（HTML + CSS #debug + JS setStatus 相關）。
-       ============================================================ -->
-  <div id="debug">debug: 已載入，請點「開始體驗」</div>
 
   <!-- ============================================================
        開始畫面：iOS 需要「使用者手勢」才能啟動相機與音效，
@@ -49,6 +43,10 @@
        只有按右上角 ✕ 關閉鈕才淡出。內容由 js/content.js 於執行時填入。
        ============================================================ -->
   <div id="panel" class="hidden">
+    <!-- 字級切換鈕（無障礙）：兩段式「標準／大字」，放大面板內文字約 1.25 倍。
+         選擇存入 localStorage，下次掃到自動沿用。 -->
+    <button id="p-font" type="button" aria-pressed="false" aria-label="切換大字模式">大字</button>
+
     <!-- 關閉按鈕：按下才淡出面板、暫停音效並解除鎖定 -->
     <button id="p-close" aria-label="關閉">✕</button>
 
@@ -107,29 +105,8 @@
       var sceneEl     = document.getElementById('ar-scene');
       var audioEl     = document.getElementById('call');
       var panelEl     = document.getElementById('panel');
-      var debugEl     = document.getElementById('debug');
       var accWrap     = document.getElementById('p-accordion');
-
-      // ---- 手機端狀態/錯誤顯示（顯示最近數行）----
-      var dbgLog = [];
-      function setStatus(msg) {
-        dbgLog.push(msg);
-        if (dbgLog.length > 6) dbgLog.shift();
-        if (debugEl) debugEl.textContent = dbgLog.join('\n');
-      }
-      // 全域錯誤 → debug 區塊
-      window.onerror = function (message, source, lineno) {
-        setStatus('JS錯誤: ' + message + (lineno ? (' @行' + lineno) : ''));
-      };
-      window.addEventListener('unhandledrejection', function (e) {
-        var r = e.reason || {};
-        setStatus('Promise錯誤: ' + (r.name || '') + ' ' + (r.message || r));
-      });
-      // MindAR 自身事件（相機/辨識就緒或失敗）
-      sceneEl.addEventListener('arReady', function () { setStatus('就緒，請對準圖卡'); });
-      sceneEl.addEventListener('arError', function (e) {
-        setStatus('AR 錯誤: ' + ((e.detail && e.detail.error) || 'unknown'));
-      });
+      var fontButton  = document.getElementById('p-font');
 
       // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
       function getBird() {
@@ -234,35 +211,29 @@
         //    這能確保 iOS 取得後置鏡頭並在手勢內完成授權；拿到後立即釋放，
         //    交由 MindAR 開啟自己的相機（MindAR 內部同樣以 facingMode:"environment"，兩者對齊）。
         //    iOS 同時只允許一路相機，故務必先 stop() 再啟動 MindAR。
-        setStatus('請求相機中…');
         try {
           var primeStream = await navigator.mediaDevices.getUserMedia({
             audio: false,
             video: { facingMode: { ideal: 'environment' } }
           });
-          setStatus('相機串流已取得');
           primeStream.getTracks().forEach(function (t) { t.stop(); });
         } catch (err) {
-          setStatus('相機錯誤: ' + err.name + ' — ' + err.message);
           return; // 拿不到相機就不啟動 MindAR
         }
 
         // 2) 啟動 MindAR
-        setStatus('MindAR 啟動中');
         var mindarSystem = sceneEl.systems['mindar-image-system'];
         if (mindarSystem) {
           try {
             await mindarSystem.start();
           } catch (err) {
-            setStatus('MindAR 啟動失敗: ' + (err.name || '') + ' — ' + (err.message || err));
             return;
           }
         } else {
-          setStatus('找不到 mindar-image-system');
           return;
         }
 
-        // 就緒訊息由 scene 的 'arReady' 事件更新；此處先切換 UI。
+        // 相機/辨識就緒後切換 UI。
         startScreen.classList.add('hidden');
         scanHint.classList.remove('hidden');
       }
@@ -304,6 +275,34 @@
           // （面板只由 ✕ 關閉鈕關掉）
         });
       }
+
+      // ---- 大字模式（無障礙）----
+      // 以 CSS 變數 --panel-font-scale 控制面板內文字大小（大字約 1.25 倍）。
+      // 選擇存入 localStorage，下次進頁自動沿用。
+      var FONT_KEY = 'kf-large-font';
+      var largeFont = false;
+      try { largeFont = localStorage.getItem(FONT_KEY) === '1'; } catch (e) {}
+
+      function applyFontScale(large) {
+        document.documentElement.style.setProperty('--panel-font-scale', large ? '1.25' : '1');
+        fontButton.setAttribute('aria-pressed', large ? 'true' : 'false');
+        // 兩段式：目前是大字就顯示「標準」，反之顯示「大字」
+        fontButton.textContent = large ? '標準' : '大字';
+        // 若手風琴正展開，字級改變後重算高度，避免內容被裁切
+        if (openIndex !== -1 && accItems[openIndex]) {
+          accItems[openIndex].body.style.maxHeight =
+            accItems[openIndex].body.scrollHeight + 'px';
+        }
+      }
+
+      fontButton.addEventListener('click', function () {
+        largeFont = !largeFont;
+        try { localStorage.setItem(FONT_KEY, largeFont ? '1' : '0'); } catch (e) {}
+        applyFontScale(largeFont);
+      });
+
+      // 頁面載入即套用先前選擇（面板尚未展開，僅設定變數與按鈕狀態）
+      applyFontScale(largeFont);
 
       startButton.addEventListener('click', start);
       document.getElementById('p-close').addEventListener('click', closePanel);
