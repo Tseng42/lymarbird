@@ -16,6 +16,10 @@
        subspecies : 亞種（如 "台灣亞種 A. a. bengalensis"），獨立一行
        enName     : 英文名
        accent     : 這種鳥的重點色（面板 active／學名等），見下方色彩規範
+       callSrc    : 叫聲音檔路徑（如 "assets/call.mp3"）；沒填就用預設 call.mp3
+       callCredit : 錄音者／授權標示，面板底部小字顯示（授權合規用）
+                    例："錄音:XXX / xeno-canto XC000000 / CC BY 4.0"
+                    留空字串則面板不顯示這行
        sections   : 六個手風琴項目的陣列，依序顯示；
                     每項有 title（按鈕文字）與 body（展開後的內文）
 
@@ -48,6 +52,11 @@ window.KINGFISHER_CONTENT = {
       subspecies: "台灣亞種 A. a. bengalensis",          // 亞種（獨立一行）
       enName:     "Common Kingfisher",
       accent:     "#14707D",   // 沉穩去飽和的青綠（博物館級），見上方色彩規範
+
+      // 叫聲音檔與授權標示（資料驅動；換鳥只改這兩行＋覆蓋音檔）
+      callSrc:    "assets/call.mp3",
+      // ★ 換成真實叫聲後，務必把 callCredit 改成正確的錄音者／授權標示 ★
+      callCredit: "錄音:佔位素材（待換成 CC 授權真實叫聲）",
 
       // 六個手風琴項目（依序）
       sections: [
@@ -87,6 +96,8 @@ window.KINGFISHER_CONTENT = {
     //   subspecies: "",                 // 沒有就留空字串
     //   enName: "Little Egret",
     //   accent: "#5B6B62",              // 例：去飽和的灰綠（博物館級，禁螢光）
+    //   callSrc: "assets/egret.mp3",    // 該鳥的叫聲檔
+    //   callCredit: "錄音:XXX / xeno-canto XC000000 / CC BY 4.0",
     //   sections: [
     //     { title: "認識牠",       body: "…" },
     //     { title: "外形特徵",     body: "…" },

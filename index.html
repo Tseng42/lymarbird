@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=10" />
+  <link rel="stylesheet" href="css/style.css?v=11" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=10"></script>
+  <script src="js/content.js?v=11"></script>
 </head>
 <body>
 
@@ -66,9 +66,20 @@
     <div id="p-sub"></div>
     <div id="p-en"></div>
 
+    <!-- 叫聲播放鈕：iOS 禁止未經手勢自動播放，故以「點擊播放」為主。
+         掃到卡片會嘗試自動播，被擋下就靜默失敗、退回此鈕手動播。
+         狀態（播放中／停止）由 audio 的 play/pause 事件同步。 -->
+    <button id="p-audio" type="button" aria-pressed="false" aria-label="播放叫聲">
+      <span id="p-audio-icon" aria-hidden="true">🔊</span><span id="p-audio-label">播放叫聲</span>
+    </button>
+
     <!-- 六個手風琴項目：由 js/content.js 的 sections 動態產生。
          點按鈕在其下方展開該項 body；一次只展開一項，再點同一個收合。 -->
     <div id="p-accordion"></div>
+
+    <!-- 錄音者／授權標示（授權合規）：小字次要色，內容來自 content.js 的
+         callCredit；沒有就不顯示（見 CSS #p-credit:empty）。 -->
+    <div id="p-credit"></div>
   </div>
 
   <!-- ============================================================
@@ -116,6 +127,9 @@
       var panelEl     = document.getElementById('panel');
       var accWrap     = document.getElementById('p-accordion');
       var fontButton  = document.getElementById('p-font');
+      var audioButton = document.getElementById('p-audio');
+      var audioIcon   = document.getElementById('p-audio-icon');
+      var audioLabel  = document.getElementById('p-audio-label');
 
       // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
       function getBird() {
@@ -146,6 +160,16 @@
         set('p-sci-note', author ? (' ' + author) : '');
         set('p-sub', bird.subspecies);   // 亞種自成一行
         set('p-en', bird.enName);
+
+        // 叫聲音檔（資料驅動）：沒填就退回預設 call.mp3。
+        // 只有在路徑真的不同時才改 src，避免不必要地重載音訊。
+        var wantSrc = bird.callSrc || 'assets/call.mp3';
+        if (audioEl.getAttribute('src') !== wantSrc) {
+          audioEl.setAttribute('src', wantSrc);
+          audioEl.load();
+        }
+        // 錄音者／授權標示：小字顯示於面板底部，沒有就留空（CSS 會隱藏）
+        set('p-credit', bird.callCredit);
 
         buildAccordion(bird.sections || []);
       }
@@ -215,6 +239,29 @@
         audioEl.volume = (typeof c.volume === 'number') ? c.volume : 0.6;
       }
 
+      // ---- 叫聲播放控制（iOS 相容）----
+      // UI 狀態一律由 audio 的 play/pause 事件驅動，確保「按鈕顯示的狀態」
+      // 與「音訊實際狀態」永遠一致：自動播成功→顯示暫停；被瀏覽器擋下（無
+      // play 事件）→ 維持「播放」讓使用者手動點。
+      function setAudioUI(playing) {
+        audioButton.setAttribute('aria-pressed', playing ? 'true' : 'false');
+        audioIcon.textContent  = playing ? '⏸' : '🔊';
+        audioLabel.textContent = playing ? '暫停叫聲' : '播放叫聲';
+      }
+      audioEl.addEventListener('play',  function () { setAudioUI(true); });
+      audioEl.addEventListener('pause', function () { setAudioUI(false); });
+
+      // 從頭播放；被 iOS 擋下時靜默失敗（不 throw，UI 維持「播放」）
+      function playCall() {
+        audioEl.currentTime = 0;
+        audioEl.play().catch(function () { /* 未經手勢被擋：靜默，退回按鈕手動播 */ });
+      }
+      // 立即停止並重置（面板關閉／targetLost 用），避免重疊或背景續播
+      function stopCall() {
+        audioEl.pause();
+        audioEl.currentTime = 0;   // pause 事件會把 UI 切回「播放」狀態
+      }
+
       // ---- 啟動 MindAR（必須在使用者手勢中呼叫）----
       async function start() {
         applyContent();
@@ -267,15 +314,14 @@
         scanHint.classList.add('hidden');
         panelEl.classList.remove('hidden');
         panelEl.classList.add('show');      // 面板淡入（CSS transition）
-        audioEl.currentTime = 0;
-        audioEl.play().catch(function () {}); // 播放叫聲
+        playCall();                         // 嘗試自動播叫聲；被 iOS 擋下則靜默失敗
       }
 
-      // 關閉（使用者按 ✕ 時）：淡出、暫停音效、解除鎖定
+      // 關閉（使用者按 ✕ 時）：淡出、停止並重置音效、解除鎖定
       function closePanel() {
         locked = false;
         panelEl.classList.remove('show');   // 面板淡出
-        audioEl.pause();                    // 暫停叫聲
+        stopCall();                         // 立即停止並重置叫聲
         scanHint.classList.remove('hidden'); // 提示可再次掃描
       }
 
@@ -290,8 +336,10 @@
         });
 
         targetEl.addEventListener('targetLost', function () {
-          // 鎖定期間不隱藏、不暫停，讓使用者能繼續閱讀
-          // （面板只由 ✕ 關閉鈕關掉）
+          // 面板鎖定期間不隱藏，讓使用者能繼續閱讀（面板只由 ✕ 關閉鈕關掉）；
+          // 但叫聲一律立即停止並重置，避免離開卡片後仍在背景續播或重疊。
+          // 使用者可再點面板上的播放鈕重新聆聽。
+          stopCall();
         });
       }
 
@@ -322,6 +370,12 @@
 
       // 頁面載入即套用先前選擇（面板尚未展開，僅設定變數與按鈕狀態）
       applyFontScale(largeFont);
+
+      // 叫聲播放鈕：點擊切換播放／停止（此點擊本身就是 iOS 允許的使用者手勢）
+      audioButton.addEventListener('click', function () {
+        if (audioEl.paused) playCall();
+        else stopCall();
+      });
 
       startButton.addEventListener('click', start);
       document.getElementById('p-close').addEventListener('click', closePanel);

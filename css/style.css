@@ -207,6 +207,47 @@ html, body {
 }
 
 /* ============================================================
+   叫聲播放鈕（標題區）：accent 淡底藥丸鈕，好按、狀態清楚。
+   播放中（aria-pressed=true）加深 accent 底以示區別。
+   ============================================================ */
+#p-audio {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;               /* 手機好點 */
+  padding: 0 18px;
+  font-size: calc(0.98rem * var(--panel-font-scale));
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;           /* 確保可點 */
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+#p-audio:active { transform: scale(0.96); }
+#p-audio-icon { font-size: 1.1rem; line-height: 1; }
+/* 播放中：加深 accent 底，區別於停止狀態 */
+#p-audio[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* ============================================================
+   錄音者／授權標示（面板底部）：小字次要色；沒有內容就整行隱藏。
+   ============================================================ */
+#p-credit {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  font-size: calc(0.72rem * var(--panel-font-scale));
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+#p-credit:empty { display: none; }   /* 沒有 callCredit 時不顯示 */
+
+/* ============================================================
    手風琴（六個主動探索項目）：直排、圖鑑感細邊清單。
    點按鈕在其下方以 max-height transition 平順展開 body；
    展開中的按鈕改為 --accent-soft 淡底 + --accent 文字（不再用亮藍漸層）。
