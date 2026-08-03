@@ -28,6 +28,15 @@
 
   /* 面板文字縮放（無障礙大字模式）：標準 1、大字約 1.25，由 JS 切換 */
   --panel-font-scale: 1;
+
+  /* 「上舞台 + 下抽屜」版面切分：上方鳥舞台約 40%、底部抽屜約 60%。
+     兩者相加 = 滿版；抽屜錨定底部，故其上緣正好在 --stage-h 處，永不覆蓋舞台。 */
+  --stage-h:  40vh;
+  --drawer-h: 60vh;
+}
+/* 手機瀏覽器工具列會吃掉 vh；支援 svh 時改用 svh 讓切分更貼合可視高度 */
+@supports (height: 100svh) {
+  :root { --stage-h: 40svh; --drawer-h: 60svh; }
 }
 
 html, body {
@@ -128,31 +137,39 @@ html, body {
 }
 
 /* ============================================================
-   2D「活起來」動態鳥圖（HTML 疊層）
+   2D「活起來」動態鳥圖（HTML 疊層）——「上舞台」主角
    ------------------------------------------------------------
-   固定在畫面上方置中（z-index 15 < 面板 20），永遠不擋底部面板文字。
+   #bird-layer 鋪滿上方舞台區（高 --stage-h ≈ 40%），以 flex 把鳥圖置中於
+   舞台中央；底部抽屜(60%)不覆蓋此區，故面板開啟時鳥仍完整可見。
    兩層分工：
-     #bird-layer  ── 淡入淡出(opacity) + 進場「低空直線快掠」(dart, 一次)
-     #bird-sprite ── 停駐後的輕微上下浮動 idle（無限循環，幅度收斂不浮誇）
+     #bird-layer  ── 淡入淡出(opacity) + 進場「低空直線快掠」(dart, 一次)；
+                     進場時(.enter)拉高 z-index 到面板之上，掠入結束由 JS
+                     移除 .enter → z-index 降回面板之下。
+     #bird-sprite ── 停駐後的輕微上下浮動 idle（無限循環，幅度收斂不浮誇）。
    全部只用 transform / opacity（GPU 合成），手機也順。
    進場風格資料驅動：JS 依 content.js 的 flight 加上 .flight-<style> class。
    ============================================================ */
 #bird-layer {
   position: fixed;
-  top: 18%;                         /* 上方區域，遠離底部面板 */
-  left: 50%;
-  z-index: 15;                      /* 相機之上、面板(20)之下 */
-  width: 42vw;
-  max-width: 200px;
-  margin-left: min(-21vw, -100px);  /* 以自身寬度置中（對應 width/max-width） */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--stage-h);           /* 舞台區高度 = 上方約 40% */
+  z-index: 15;                      /* 平時：相機之上、面板(20)之下 */
+  display: flex;                    /* 讓鳥圖置中於舞台 */
+  align-items: center;
+  justify-content: center;
   pointer-events: none;             /* 純視覺，不攔截觸控 */
   opacity: 0;                       /* 預設隱藏，避免開始畫面/掃描時閃現 */
   transition: opacity 0.4s ease;
   will-change: transform, opacity;
 }
 #bird-layer.show { opacity: 1; }
+/* 進場中：拉高到面板之上，完成「先在面板之上掠入」的驚艷時刻 */
+#bird-layer.enter { z-index: 25; }
 
-/* 進場：低空、筆直、快速的一次橫向掠過（dart）。both 保留結束定位。 */
+/* 進場：低空、筆直、快速的一次橫向掠過（dart）。both 保留結束定位。
+   容器鋪滿舞台，故 translateX 即帶著置中的鳥橫向掠入，結束於 0（回舞台中央）。 */
 #bird-layer.flight-dart.enter {
   animation: birdDart 0.7s cubic-bezier(0.16, 0.72, 0.3, 1) both;
 }
@@ -162,11 +179,15 @@ html, body {
   100% { transform: translateX(0)       translateY(0); }
 }
 
-/* 停駐 idle：輕微上下浮動＋極小縮放，收斂不浮誇 */
+/* 停駐 idle：輕微上下浮動＋極小縮放，收斂不浮誇。
+   以 max-width / max-height 同時限制、保留原始比例，避免變形，並確保在各種
+   螢幕高度都放得進舞台（不被擠出畫面）。 */
 #bird-sprite {
   display: block;
-  width: 100%;
+  width: auto;
   height: auto;
+  max-width: min(42vw, 190px);
+  max-height: calc(var(--stage-h) * 0.72);
   transform-origin: 50% 60%;
   animation: birdIdle 3s ease-in-out infinite;
   /* 淡淡投影，讓鳥從相機畫面中浮出、更有立體感 */
@@ -184,45 +205,99 @@ html, body {
 }
 
 /* ============================================================
-   解說面板（DOM 疊層）：暖白紙、深墨字，圖鑑／編輯調性，直式底部固定
+   解說面板（DOM 疊層）——「下抽屜」bottom sheet：暖白紙、深墨字，圖鑑調性
    ------------------------------------------------------------
-   底色用微透的暖白紙（--paper-panel）＋ backdrop-filter 模糊，讓相機/
-   圖卡透出一點以增強 AR 感，同時維持文字可讀。iOS Safari 需同時寫
-   -webkit-backdrop-filter，否則模糊會失效。
-   --accent-soft 在此重新宣告：JS 把 --accent 設在本元素，於是面板內的
-   淡底色能隨物種 accent 連動。
+   固定在底部、佔下方約 60%（--drawer-h），全寬（大螢幕以 max-width 收斂並
+   auto 置中），圓角只在上緣，永不覆蓋上方鳥舞台。底色用微透暖白紙＋
+   backdrop-filter 模糊（iOS 需 -webkit- 前綴）。內部：#p-header 固定不捲動、
+   #p-scroll 捲動，故面板再長也只在內部捲動，不會把鳥擠出畫面。
+   狀態（皆以 transform 控制，GPU 合成）：
+     隱藏          → translateY(100%)         （沉在畫面下方）
+     .show         → translateY(0)            （升起，展開）
+     .show.collapsed→ translateY(100% - peek) （下滑收合，只露標題列 peek）
+   --accent-soft 在此重新宣告，隨本元素 --accent 連動。
    ============================================================ */
 #panel {
   position: fixed;
-  left: 50%;
-  bottom: max(24px, env(safe-area-inset-bottom, 24px));
-  transform: translate(-50%, 20px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 auto;                      /* 大螢幕時配合 max-width 置中 */
+  width: min(100%, 560px);
   z-index: 20;
-  width: min(92vw, 460px);
-  max-height: 76vh;                    /* 略縮高度，讓相機/圖卡透出更多 */
-  overflow-y: auto;                    /* 超過就在面板內捲動 */
-  -webkit-overflow-scrolling: touch;
-  padding: 18px 20px 20px;
-  border-radius: 14px;                 /* 圓角收斂，走編輯感 */
+  height: var(--drawer-h);             /* 下方約 60% */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                    /* 讓上緣圓角裁切；捲動交給 #p-scroll */
+  border-radius: 18px 18px 0 0;        /* 圓角只在上緣 */
   /* 暖白紙微透底 */
   background: var(--paper-panel);
-  border: 1px solid var(--hairline);   /* 1px 細邊框 */
+  border: 1px solid var(--hairline);
+  border-bottom: none;
   color: var(--ink);
-  box-shadow: 0 8px 28px rgba(35, 41, 43, 0.12);  /* 極淡陰影 */
+  box-shadow: 0 -8px 28px rgba(35, 41, 43, 0.16);  /* 陰影朝上，抽屜感 */
   -webkit-backdrop-filter: blur(16px) saturate(105%);  /* iOS 必備前綴 */
   backdrop-filter: blur(16px) saturate(105%);
   /* --accent-soft 隨本元素的 --accent 連動（含靜態 fallback） */
   --accent-soft: rgba(20, 112, 125, 0.12);
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  /* 淡入淡出 */
+  /* 收合時露出的標題列高度，由 JS 依實際 #p-header 高度量測後覆寫 */
+  --peek-h: 104px;
+  /* 進場/收合：滑動 + 淡入淡出 */
   opacity: 0;
+  transform: translateY(100%);
   pointer-events: none;
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.4s ease;
+  will-change: transform;
 }
 #panel.show {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   pointer-events: auto;   /* 顯示時才接收觸控/點擊，隱藏時 none 不擋畫面 */
+}
+/* 收合：下滑到只露出頂端標題列（peek），露出更多上方鳥舞台 */
+#panel.show.collapsed {
+  transform: translateY(calc(100% - var(--peek-h)));
+}
+/* 尊重「減少動態」偏好：抽屜不滑動，改為單純淡入（transform 直接就位不過渡） */
+@media (prefers-reduced-motion: reduce) {
+  #panel { transition: opacity 0.3s ease; }
+}
+
+/* 標題列（不捲動）＝收合時的露出區 peek：把手 + 中文名 */
+#p-header {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 8px 20px 12px;
+}
+/* 抽屜把手：44×5 藥丸，外圍 22px 觸控區；touch-action:none 讓拖曳不被捲動吃掉 */
+#p-handle {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+}
+#p-handle::before {
+  content: "";
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--hairline);
+  transition: background 0.15s ease;
+}
+#p-handle:active { cursor: grabbing; }
+#p-handle:active::before,
+#p-handle:hover::before { background: var(--ink-soft); }
+
+/* 可捲動內容區：面板再長也只在此捲動，底部留白避開安全區 */
+#p-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ------------------------------------------------------------

@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=12" />
+  <link rel="stylesheet" href="css/style.css?v=13" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=12"></script>
+  <script src="js/content.js?v=13"></script>
 </head>
 <body>
 
@@ -42,26 +42,36 @@
   <div id="scan-hint" class="hidden">將鏡頭對準圖卡…</div>
 
   <!-- ============================================================
-       2D「活起來」動態鳥圖（HTML 疊層，純視覺）。
+       2D「活起來」動態鳥圖（HTML 疊層，純視覺）——「上舞台」主角。
        ------------------------------------------------------------
        設計選擇：本專案所有視覺一律走 HTML 疊層（AR 場景刻意不放 3D 物件，
        見 <a-entity id="target"> 註解），為求穩定與架構一致，這裡採規格書
        允許的「HTML 疊層」路線，而非在 target 上錨定 A-Frame plane。
-       行為：辨識到圖卡(targetFound) → 從左側低空、筆直、快速掠入(dart)，
-       之後停在畫面上方做輕微上下浮動 idle；辨識丟失/關閉面板即淡出消失。
-       位置固定在畫面上方（z-index 15 < 面板 20），不會擋住底部面板文字。
-       圖與飛行風格資料驅動：content.js 每種鳥的 sprite / flight。
+
+       版面：#bird-layer 是鋪滿「上方舞台區」(高 --stage-h ≈ 40%) 的容器，
+       鳥圖(sprite)以 flex 置中於舞台中央；底部抽屜面板(60%)不覆蓋此區，
+       故面板開啟時鳥仍完整可見。
+       時序（驚艷時刻）：辨識到卡片 → 鳥先以高 z-index(在面板之上)全寬低空
+       快速掠入一次(dart)；掠入結束後降回舞台、z-index 回到面板之下、開始
+       輕微上下浮動 idle，接著底部抽屜才升起（鳥先、面板後）。
+       辨識丟失/關閉面板即淡出消失。圖與飛行風格資料驅動：content.js 的
+       sprite / flight。尊重 prefers-reduced-motion（略過掠入，直接定位）。
        ============================================================ -->
   <div id="bird-layer" class="flight-dart" aria-hidden="true">
     <img id="bird-sprite" src="assets/kingfisher.png" alt="" loading="eager" decoding="async" />
   </div>
 
   <!-- ============================================================
-       解說面板（DOM 疊層）。
+       解說面板（DOM 疊層）——「下抽屜」bottom sheet，輔助角色。
        說明：A-Frame 內建的 <a-text> 使用 MSDF 字型，無法顯示中文，
        為了「文字清楚可讀」的中文需求，改用 HTML/CSS 疊層呈現。
-       行為：掃到目標(targetFound)即顯示並鎖定，之後目標離開也不消失；
-       只有按右上角 ✕ 關閉鈕才淡出。內容由 js/content.js 於執行時填入。
+       版面：固定在底部、佔下方約 60%（--drawer-h），圓角只在上緣，永遠
+       不覆蓋上方鳥舞台區。結構分兩層：
+         #p-header ── 不捲動的「標題列」＝把手 + 中文名，也是收合時的露出區(peek)
+         #p-scroll ── 可捲動的其餘內容（學名/亞種/英文名/播放鈕/手風琴/授權）
+       行為：掃到目標(targetFound)即（於鳥掠入後）升起並鎖定，之後目標離開也
+       不消失；只有按右上角 ✕ 關閉鈕才淡出。把手可下滑收合成只露標題列、
+       上滑展開。內容由 js/content.js 於執行時填入。
        ============================================================ -->
   <div id="panel" class="hidden">
     <!-- 字級切換鈕（無障礙）：兩段式「標準／大字」，放大面板內文字約 1.25 倍。
@@ -71,30 +81,39 @@
     <!-- 關閉按鈕：按下才淡出面板、暫停音效並解除鎖定 -->
     <button id="p-close" aria-label="關閉">✕</button>
 
-    <!-- 標題階層：中文名、學名、亞種、英文名各自成行。
-         學名（Latin，襯線斜體）＋命名者（括號，次要色）同一行；
-         亞種獨立一行，避免與命名者擠在一起而硬折。 -->
-    <div id="p-name"></div>
-    <div id="p-sci-line">
-      <span id="p-sci"></span><span id="p-sci-note"></span>
+    <!-- 標題列（不捲動）＝收合時露出的 peek 區：把手 + 中文名 -->
+    <div id="p-header">
+      <!-- 抽屜把手：可點擊或上下滑動，收合／展開抽屜 -->
+      <div id="p-handle" role="button" tabindex="0"
+           aria-expanded="true" aria-label="收合或展開資訊面板"></div>
+      <!-- 中文名（面板主畫面大字）。學名等其餘標題移到下方可捲動區。 -->
+      <div id="p-name"></div>
     </div>
-    <div id="p-sub"></div>
-    <div id="p-en"></div>
 
-    <!-- 叫聲播放鈕：iOS 禁止未經手勢自動播放，故以「點擊播放」為主。
-         掃到卡片會嘗試自動播，被擋下就靜默失敗、退回此鈕手動播。
-         狀態（播放中／停止）由 audio 的 play/pause 事件同步。 -->
-    <button id="p-audio" type="button" aria-pressed="false" aria-label="播放叫聲">
-      <span id="p-audio-icon" aria-hidden="true">🔊</span><span id="p-audio-label">播放叫聲</span>
-    </button>
+    <!-- 可捲動內容 -->
+    <div id="p-scroll">
+      <!-- 標題階層（其餘）：學名＋命名者同一行、亞種獨立一行、英文名。 -->
+      <div id="p-sci-line">
+        <span id="p-sci"></span><span id="p-sci-note"></span>
+      </div>
+      <div id="p-sub"></div>
+      <div id="p-en"></div>
 
-    <!-- 六個手風琴項目：由 js/content.js 的 sections 動態產生。
-         點按鈕在其下方展開該項 body；一次只展開一項，再點同一個收合。 -->
-    <div id="p-accordion"></div>
+      <!-- 叫聲播放鈕：iOS 禁止未經手勢自動播放，故以「點擊播放」為主。
+           掃到卡片會嘗試自動播，被擋下就靜默失敗、退回此鈕手動播。
+           狀態（播放中／停止）由 audio 的 play/pause 事件同步。 -->
+      <button id="p-audio" type="button" aria-pressed="false" aria-label="播放叫聲">
+        <span id="p-audio-icon" aria-hidden="true">🔊</span><span id="p-audio-label">播放叫聲</span>
+      </button>
 
-    <!-- 錄音者／授權標示（授權合規）：小字次要色，內容來自 content.js 的
-         callCredit；沒有就不顯示（見 CSS #p-credit:empty）。 -->
-    <div id="p-credit"></div>
+      <!-- 六個手風琴項目：由 js/content.js 的 sections 動態產生。
+           點按鈕在其下方展開該項 body；一次只展開一項，再點同一個收合。 -->
+      <div id="p-accordion"></div>
+
+      <!-- 錄音者／授權標示（授權合規）：小字次要色，內容來自 content.js 的
+           callCredit；沒有就不顯示（見 CSS #p-credit:empty）。 -->
+      <div id="p-credit"></div>
+    </div>
   </div>
 
   <!-- ============================================================
@@ -147,6 +166,14 @@
       var audioLabel  = document.getElementById('p-audio-label');
       var birdLayer   = document.getElementById('bird-layer');
       var birdSprite  = document.getElementById('bird-sprite');
+      var panelHandle = document.getElementById('p-handle');
+      var pHeader     = document.getElementById('p-header');
+
+      // 是否偏好「減少動態」（無障礙）：用於略過掠入、改為直接定位＋淡入
+      function prefersReducedMotion() {
+        return !!(window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      }
 
       // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
       function getBird() {
@@ -306,17 +333,45 @@
       birdSprite.addEventListener('load',  function () { birdReady = true; });
       birdSprite.addEventListener('error', function () { birdReady = false; hideBird(); });
 
-      // 顯示：低空掠入。每次 targetFound 都重播進場動畫（移除再加 class + 強制
-      // reflow）。與面板鎖定解耦——重新辨識到卡片時鳥都會再飛入一次。
-      function showBird() {
-        if (!birdReady) return;           // 圖還沒好/缺圖就不顯示
-        birdLayer.classList.remove('enter');
-        void birdLayer.offsetWidth;       // 強制 reflow，讓進場動畫重播
-        birdLayer.classList.add('show', 'enter');
+      // 直接定位顯示（無掠入）：減少動態偏好、或不需要驚艷時序時使用。
+      function showBirdImmediate() {
+        if (!birdReady) return;
+        birdLayer.classList.remove('enter');   // 不拉高 z-index、不播 dart
+        birdLayer.classList.add('show');
       }
-      // 隱藏：淡出（opacity transition）。enter 用 both 保持定位，下次 show 重播。
+
+      // 掠入：以高 z-index（.enter → z-index 25，在面板之上）全寬低空快速掠入一次，
+      // 動畫結束後移除 .enter（z-index 降回 15，回到面板之下；位置仍在舞台中央，
+      // 因 dart 結束於 translate 0,0＝無位移，故不會跳動），再呼叫 onDone。
+      // 每次都先移除再加 class + 強制 reflow，確保重播。
+      function dartBird(onDone) {
+        if (!birdReady) { if (onDone) onDone(); return; }  // 沒鳥圖：不等，直接繼續
+        birdLayer.classList.remove('enter');
+        void birdLayer.offsetWidth;            // 強制 reflow，讓進場動畫重播
+        birdLayer.classList.add('show', 'enter');
+
+        var done = false;
+        function after() {
+          if (done) return;
+          done = true;
+          birdLayer.classList.remove('enter'); // 掠入結束：z-index 降回面板之下
+          if (onDone) onDone();
+        }
+        // 以 animationend 為準；備援 timer 以防動畫未觸發事件（>0.7s dart）
+        birdLayer.addEventListener('animationend', after, { once: true });
+        setTimeout(after, 850);
+      }
+
+      // 供「已鎖定時重新辨識到」使用：鳥再飛入一次（面板已在，不需接面板）。
+      // 減少動態時直接定位不掠入。
+      function showBird() {
+        if (!birdReady) return;
+        if (prefersReducedMotion()) { showBirdImmediate(); return; }
+        dartBird(null);
+      }
+      // 隱藏：淡出（opacity transition）。
       function hideBird() {
-        birdLayer.classList.remove('show');
+        birdLayer.classList.remove('show', 'enter');
       }
 
       // ---- 啟動 MindAR（必須在使用者手勢中呼叫）----
@@ -366,32 +421,91 @@
       // 只有按下關閉鈕才會淡出並解鎖。
       var locked = false;
 
-      // 顯示（掃到目標時）
+      // ---- 抽屜收合狀態 ----
+      // collapsed=true：抽屜下滑，只露出頂端標題列(peek)，露出更多上方鳥舞台。
+      var collapsed = false;
+      function setCollapsed(c) {
+        collapsed = c;
+        panelEl.classList.toggle('collapsed', c);
+        panelHandle.setAttribute('aria-expanded', c ? 'false' : 'true');
+      }
+      // 量測實際標題列高度 → 設定收合時露出的 peek 高度（隨大字模式/內容變動）
+      function updatePeek() {
+        var h = pHeader.offsetHeight;
+        if (h > 0) panelEl.style.setProperty('--peek-h', (h + 6) + 'px');
+      }
+
+      // 升起抽屜（上舞台鳥掠入結束後才呼叫）：預設展開、量測 peek、嘗試自動播叫聲
       function showPanel() {
         scanHint.classList.add('hidden');
         panelEl.classList.remove('hidden');
-        panelEl.classList.add('show');      // 面板淡入（CSS transition）
+        setCollapsed(false);                // 每次開啟都以展開狀態呈現
+        // 先讓瀏覽器完成 layout 再量 peek（大字/內容已套用）
+        updatePeek();
+        panelEl.classList.add('show');      // 面板升起（CSS transform transition）
         playCall();                         // 嘗試自動播叫聲；被 iOS 擋下則靜默失敗
       }
 
-      // 關閉（使用者按 ✕ 時）：淡出、停止並重置音效、解除鎖定
+      // 關閉（使用者按 ✕ 時）：滑下、停止並重置音效、解除鎖定
       function closePanel() {
         locked = false;
-        panelEl.classList.remove('show');   // 面板淡出
+        panelEl.classList.remove('show');   // 面板滑下淡出
         stopCall();                         // 立即停止並重置叫聲
         hideBird();                         // 鳥一併淡出，回到乾淨的可再掃描狀態
         scanHint.classList.remove('hidden'); // 提示可再次掃描
       }
+
+      // ---- 抽屜把手：點擊切換、上下滑動收合/展開 ----
+      // 用 pointer 事件同時支援觸控與滑鼠；小位移視為點擊 → 切換收合狀態。
+      var dragStartY = null, dragMoved = false;
+      panelHandle.addEventListener('pointerdown', function (e) {
+        dragStartY = e.clientY;
+        dragMoved = false;
+        if (panelHandle.setPointerCapture) {
+          try { panelHandle.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+      });
+      panelHandle.addEventListener('pointermove', function (e) {
+        if (dragStartY == null) return;
+        if (Math.abs(e.clientY - dragStartY) > 8) dragMoved = true;
+      });
+      panelHandle.addEventListener('pointerup', function (e) {
+        if (dragStartY == null) return;
+        var dy = e.clientY - dragStartY;
+        dragStartY = null;
+        if (!dragMoved || Math.abs(dy) < 24) { setCollapsed(!collapsed); return; }
+        setCollapsed(dy > 0);               // 下滑收合、上滑展開
+      });
+      panelHandle.addEventListener('pointercancel', function () { dragStartY = null; });
+      panelHandle.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          setCollapsed(!collapsed);
+        }
+      });
+      // 視窗尺寸變動（旋轉/工具列收合）時重量 peek
+      window.addEventListener('resize', function () {
+        if (panelEl.classList.contains('show')) updatePeek();
+      });
 
       // ---- 綁定 MindAR 目標事件 ----
       function bindTargetEvents() {
         var targetEl = document.getElementById('target');
 
         targetEl.addEventListener('targetFound', function () {
-          showBird();           // 鳥：每次辨識到都低空掠入（與面板鎖定解耦）
-          if (locked) return;   // 已鎖定顯示中，忽略重複觸發
+          if (locked) {         // 已鎖定顯示中：面板已在，只讓鳥再掠入一次
+            showBird();
+            return;
+          }
           locked = true;        // 一掃到就鎖定，之後 targetLost 不再隱藏
-          showPanel();
+
+          // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
+          if (prefersReducedMotion()) {
+            showBirdImmediate();  // 減少動態：不掠入，直接定位
+            showPanel();          // 面板改淡入（見 CSS reduced-motion）
+          } else {
+            dartBird(function () { showPanel(); });  // 掠入完成才升面板
+          }
         });
 
         targetEl.addEventListener('targetLost', function () {
@@ -420,6 +534,8 @@
           accItems[openIndex].body.style.maxHeight =
             accItems[openIndex].body.scrollHeight + 'px';
         }
+        // 標題（中文名）字級變動 → 標題列高度變動，重量收合露出的 peek 高度
+        if (panelEl.classList.contains('show')) updatePeek();
       }
 
       fontButton.addEventListener('click', function () {
