@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=11" />
+  <link rel="stylesheet" href="css/style.css?v=12" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=11"></script>
+  <script src="js/content.js?v=12"></script>
 </head>
 <body>
 
@@ -40,6 +40,21 @@
 
   <!-- 掃描提示（啟動後、尚未掃到圖卡時顯示） -->
   <div id="scan-hint" class="hidden">將鏡頭對準圖卡…</div>
+
+  <!-- ============================================================
+       2D「活起來」動態鳥圖（HTML 疊層，純視覺）。
+       ------------------------------------------------------------
+       設計選擇：本專案所有視覺一律走 HTML 疊層（AR 場景刻意不放 3D 物件，
+       見 <a-entity id="target"> 註解），為求穩定與架構一致，這裡採規格書
+       允許的「HTML 疊層」路線，而非在 target 上錨定 A-Frame plane。
+       行為：辨識到圖卡(targetFound) → 從左側低空、筆直、快速掠入(dart)，
+       之後停在畫面上方做輕微上下浮動 idle；辨識丟失/關閉面板即淡出消失。
+       位置固定在畫面上方（z-index 15 < 面板 20），不會擋住底部面板文字。
+       圖與飛行風格資料驅動：content.js 每種鳥的 sprite / flight。
+       ============================================================ -->
+  <div id="bird-layer" class="flight-dart" aria-hidden="true">
+    <img id="bird-sprite" src="assets/kingfisher.png" alt="" loading="eager" decoding="async" />
+  </div>
 
   <!-- ============================================================
        解說面板（DOM 疊層）。
@@ -130,6 +145,8 @@
       var audioButton = document.getElementById('p-audio');
       var audioIcon   = document.getElementById('p-audio-icon');
       var audioLabel  = document.getElementById('p-audio-label');
+      var birdLayer   = document.getElementById('bird-layer');
+      var birdSprite  = document.getElementById('bird-sprite');
 
       // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
       function getBird() {
@@ -170,6 +187,25 @@
         }
         // 錄音者／授權標示：小字顯示於面板底部，沒有就留空（CSS 會隱藏）
         set('p-credit', bird.callCredit);
+
+        // 2D 鳥圖（資料驅動）：sprite 圖路徑 + flight 飛行風格。
+        // 只在路徑真的不同時才改 src；改後先 decode() 預載，避免首次顯示閃爍，
+        // 缺圖/載入失敗則 birdReady=false，showBird() 會略過（不顯示破圖）。
+        var wantSprite = bird.sprite || 'assets/kingfisher.png';
+        if (birdSprite.getAttribute('src') !== wantSprite) {
+          birdReady = false;
+          birdSprite.setAttribute('src', wantSprite);
+          if (birdSprite.decode) {
+            birdSprite.decode()
+              .then(function () { birdReady = true; })
+              .catch(function () { birdReady = false; });
+          }
+        }
+        // 飛行風格 class（目前支援 dart；預設 dart）。先清掉舊的 flight-* 再套新的。
+        Array.prototype.slice.call(birdLayer.classList).forEach(function (c) {
+          if (c.indexOf('flight-') === 0) birdLayer.classList.remove(c);
+        });
+        birdLayer.classList.add('flight-' + (bird.flight || 'dart'));
 
         buildAccordion(bird.sections || []);
       }
@@ -262,6 +298,27 @@
         audioEl.currentTime = 0;   // pause 事件會把 UI 切回「播放」狀態
       }
 
+      // ---- 2D 鳥圖「活起來」控制 ----
+      // birdReady：圖片是否已載入可畫。缺圖/失敗則不顯示，避免破圖。
+      // （decode() 於 applyContent 設定；下面 load/error 事件為不支援 decode 的
+      //  瀏覽器補上同樣的狀態，並在載入失敗時確保鳥維持隱藏。）
+      var birdReady = false;
+      birdSprite.addEventListener('load',  function () { birdReady = true; });
+      birdSprite.addEventListener('error', function () { birdReady = false; hideBird(); });
+
+      // 顯示：低空掠入。每次 targetFound 都重播進場動畫（移除再加 class + 強制
+      // reflow）。與面板鎖定解耦——重新辨識到卡片時鳥都會再飛入一次。
+      function showBird() {
+        if (!birdReady) return;           // 圖還沒好/缺圖就不顯示
+        birdLayer.classList.remove('enter');
+        void birdLayer.offsetWidth;       // 強制 reflow，讓進場動畫重播
+        birdLayer.classList.add('show', 'enter');
+      }
+      // 隱藏：淡出（opacity transition）。enter 用 both 保持定位，下次 show 重播。
+      function hideBird() {
+        birdLayer.classList.remove('show');
+      }
+
       // ---- 啟動 MindAR（必須在使用者手勢中呼叫）----
       async function start() {
         applyContent();
@@ -322,6 +379,7 @@
         locked = false;
         panelEl.classList.remove('show');   // 面板淡出
         stopCall();                         // 立即停止並重置叫聲
+        hideBird();                         // 鳥一併淡出，回到乾淨的可再掃描狀態
         scanHint.classList.remove('hidden'); // 提示可再次掃描
       }
 
@@ -330,6 +388,7 @@
         var targetEl = document.getElementById('target');
 
         targetEl.addEventListener('targetFound', function () {
+          showBird();           // 鳥：每次辨識到都低空掠入（與面板鎖定解耦）
           if (locked) return;   // 已鎖定顯示中，忽略重複觸發
           locked = true;        // 一掃到就鎖定，之後 targetLost 不再隱藏
           showPanel();
@@ -340,6 +399,7 @@
           // 但叫聲一律立即停止並重置，避免離開卡片後仍在背景續播或重疊。
           // 使用者可再點面板上的播放鈕重新聆聽。
           stopCall();
+          hideBird();           // 鳥：辨識丟失即淡出消失
         });
       }
 

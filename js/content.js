@@ -20,6 +20,11 @@
        callCredit : 錄音者／授權標示，面板底部小字顯示（授權合規用）
                     例："錄音:XXX / xeno-canto XC000000 / CC BY 4.0"
                     留空字串則面板不顯示這行
+       sprite     : 2D 去背鳥圖路徑（如 "assets/kingfisher.png"，透明背景 PNG）；
+                    辨識到圖卡時以 HTML 疊層低空掠入、於畫面上方輕輕浮動。
+                    沒填就用預設 assets/kingfisher.png
+       flight     : 飛行風格；目前支援 'dart'（低空直線快掠，呼應翠鳥飛法）。
+                    沒填預設 'dart'
        sections   : 六個手風琴項目的陣列，依序顯示；
                     每項有 title（按鈕文字）與 body（展開後的內文）
 
@@ -57,6 +62,10 @@ window.KINGFISHER_CONTENT = {
       callSrc:    "assets/call.mp3",
       // ★ 換成真實叫聲後，務必把 callCredit 改成正確的錄音者／授權標示 ★
       callCredit: "錄音:佔位素材（待換成 CC 授權真實叫聲）",
+
+      // 2D 動態鳥圖（資料驅動；換鳥只改這兩行＋覆蓋去背 PNG）
+      sprite:     "assets/kingfisher.png",   // 去背透明 PNG
+      flight:     "dart",                    // 低空直線快掠（目前唯一支援；預設 dart）
 
       // 六個手風琴項目（依序）
       sections: [
@@ -98,6 +107,8 @@ window.KINGFISHER_CONTENT = {
     //   accent: "#5B6B62",              // 例：去飽和的灰綠（博物館級，禁螢光）
     //   callSrc: "assets/egret.mp3",    // 該鳥的叫聲檔
     //   callCredit: "錄音:XXX / xeno-canto XC000000 / CC BY 4.0",
+    //   sprite: "assets/egret.png",     // 該鳥的去背透明 PNG
+    //   flight: "dart",                 // 飛行風格（預設 dart）
     //   sections: [
     //     { title: "認識牠",       body: "…" },
     //     { title: "外形特徵",     body: "…" },

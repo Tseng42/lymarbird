@@ -128,6 +128,62 @@ html, body {
 }
 
 /* ============================================================
+   2D「活起來」動態鳥圖（HTML 疊層）
+   ------------------------------------------------------------
+   固定在畫面上方置中（z-index 15 < 面板 20），永遠不擋底部面板文字。
+   兩層分工：
+     #bird-layer  ── 淡入淡出(opacity) + 進場「低空直線快掠」(dart, 一次)
+     #bird-sprite ── 停駐後的輕微上下浮動 idle（無限循環，幅度收斂不浮誇）
+   全部只用 transform / opacity（GPU 合成），手機也順。
+   進場風格資料驅動：JS 依 content.js 的 flight 加上 .flight-<style> class。
+   ============================================================ */
+#bird-layer {
+  position: fixed;
+  top: 18%;                         /* 上方區域，遠離底部面板 */
+  left: 50%;
+  z-index: 15;                      /* 相機之上、面板(20)之下 */
+  width: 42vw;
+  max-width: 200px;
+  margin-left: min(-21vw, -100px);  /* 以自身寬度置中（對應 width/max-width） */
+  pointer-events: none;             /* 純視覺，不攔截觸控 */
+  opacity: 0;                       /* 預設隱藏，避免開始畫面/掃描時閃現 */
+  transition: opacity 0.4s ease;
+  will-change: transform, opacity;
+}
+#bird-layer.show { opacity: 1; }
+
+/* 進場：低空、筆直、快速的一次橫向掠過（dart）。both 保留結束定位。 */
+#bird-layer.flight-dart.enter {
+  animation: birdDart 0.7s cubic-bezier(0.16, 0.72, 0.3, 1) both;
+}
+@keyframes birdDart {
+  0%   { transform: translateX(-125vw) translateY(10px); }  /* 螢幕外左、略低 */
+  70%  { transform: translateX(8px)     translateY(0); }    /* 快速抵達、輕微過衝 */
+  100% { transform: translateX(0)       translateY(0); }
+}
+
+/* 停駐 idle：輕微上下浮動＋極小縮放，收斂不浮誇 */
+#bird-sprite {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 60%;
+  animation: birdIdle 3s ease-in-out infinite;
+  /* 淡淡投影，讓鳥從相機畫面中浮出、更有立體感 */
+  filter: drop-shadow(0 6px 10px rgba(35, 41, 43, 0.28));
+}
+@keyframes birdIdle {
+  0%, 100% { transform: translateY(0)    scale(1); }
+  50%      { transform: translateY(-7px) scale(1.02); }
+}
+
+/* 尊重「減少動態」偏好：關掉浮誇動畫，僅保留淡入淡出 */
+@media (prefers-reduced-motion: reduce) {
+  #bird-layer.flight-dart.enter { animation: none; }
+  #bird-sprite { animation: none; }
+}
+
+/* ============================================================
    解說面板（DOM 疊層）：暖白紙、深墨字，圖鑑／編輯調性，直式底部固定
    ------------------------------------------------------------
    底色用微透的暖白紙（--paper-panel）＋ backdrop-filter 模糊，讓相機/
