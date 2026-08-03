@@ -4,17 +4,27 @@
 * { box-sizing: border-box; }
 
 /* ============================================================
-   色彩 tokens：通透白／米白 + 翠鳥青藍重點色 + 克制的暖橙
+   自然史策展級設計 token（跨物種共用，單一來源）
+   ------------------------------------------------------------
+   走「暖白紙 + 深墨字 + 沉穩去飽和重點色」的圖鑑／編輯調性。
+   accent = 單一物種重點色，由 js/content.js 每種鳥的 accent 欄位
+   提供，並在顯示時以 JS 對面板根元素 setProperty('--accent', …)
+   覆寫；未設定時 fallback 為下方預設青綠。
+   ★ 規範：所有 accent 一律採沉穩、去飽和的博物館級色，禁止高飽和螢光色。
    ============================================================ */
 :root {
-  --kf-blue:      #2E9FD8;   /* 翠鳥青藍：active／重點色 */
-  --kf-blue-d:    #1F7FB0;   /* 深一階青藍：連結／學名文字 */
-  --kf-ink:       #223642;   /* 主要文字：深藍灰，白底上對比足夠 */
-  --kf-ink-soft:  #52707E;   /* 次要文字 */
-  --kf-orange:    #C0703A;   /* 腹面暖橙（深化以確保可讀），克制使用 */
-  --glass:        rgba(255, 255, 255, 0.66); /* 淡色毛玻璃白底 */
-  --glass-veil:   rgba(255, 255, 255, 0.38); /* 疊加極淡白遮罩，襯托文字 */
-  --glass-border: rgba(255, 255, 255, 0.75); /* 細緻半透明白邊 */
+  --paper:       #FAF6EE;   /* 暖白紙：面板底色（非純白） */
+  --ink:         #23292B;   /* 主要文字（非純黑） */
+  --ink-soft:    #6B7378;   /* 次要文字：學名括號、亞種、英文名 */
+  --hairline:    #E3DCCF;   /* 細分隔線／邊框 */
+  --accent:      #14707D;   /* 重點色（翠鳥預設）：沉穩去飽和青綠 */
+  /* --accent-soft：--accent 約 12% 的淡底。先給等值靜態 fallback（給不支援
+     color-mix 的舊瀏覽器），再用 color-mix 讓它隨 --accent 連動變色。 */
+  --accent-soft: rgba(20, 112, 125, 0.12);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+
+  /* 面板底：--paper 微透（約 92%），讓相機/圖卡透出一點以增強 AR 感 */
+  --paper-panel: rgba(250, 246, 238, 0.92);
 
   /* 面板文字縮放（無障礙大字模式）：標準 1、大字約 1.25，由 JS 切換 */
   --panel-font-scale: 1;
@@ -48,9 +58,9 @@ html, body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: var(--kf-ink);
-  /* 通透淺色漸層：白 → 淡青藍，呼應白牆展場 */
-  background: radial-gradient(circle at 50% 32%, #ffffff 0%, #eaf6fc 55%, #d6ecf7 100%);
+  color: var(--ink);
+  /* 暖白紙漸層：呼應圖鑑／展場調性 */
+  background: radial-gradient(circle at 50% 32%, #ffffff 0%, var(--paper) 60%, #F1EAD9 100%);
 }
 
 #start-inner { padding: 24px; max-width: 90vw; }
@@ -60,36 +70,36 @@ html, body {
   font-weight: 800;
   margin: 0 0 8px;
   letter-spacing: 2px;
-  color: var(--kf-ink);
+  color: var(--ink);
 }
 
 #start-subtitle {
   font-size: 1.05rem;
   margin: 0 0 32px;
-  color: var(--kf-ink-soft);
+  color: var(--ink-soft);
 }
 
 #start-button {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
+  color: var(--paper);
+  background: var(--accent);
   border: none;
   border-radius: 999px;
   padding: 16px 40px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(46, 159, 216, 0.35);
+  box-shadow: 0 6px 18px rgba(35, 41, 43, 0.20);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 #start-button:active {
   transform: scale(0.96);
-  box-shadow: 0 3px 12px rgba(46, 159, 216, 0.3);
+  box-shadow: 0 3px 10px rgba(35, 41, 43, 0.18);
 }
 
 #start-hint {
   margin-top: 22px;
   font-size: 0.85rem;
-  color: var(--kf-ink-soft);
+  color: var(--ink-soft);
 }
 
 /* ============================================================
@@ -103,13 +113,13 @@ html, body {
   z-index: 20;
   padding: 10px 20px;
   border-radius: 999px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  color: var(--kf-ink);
+  background: var(--paper-panel);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
   font-size: 0.95rem;
-  box-shadow: 0 6px 18px rgba(30, 60, 80, 0.12);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);  /* iOS 必備前綴 */
-  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 6px 18px rgba(35, 41, 43, 0.12);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);  /* iOS 必備前綴 */
+  backdrop-filter: blur(12px) saturate(110%);
   animation: pulseHint 1.6s ease-in-out infinite;
 }
 @keyframes pulseHint {
@@ -118,11 +128,13 @@ html, body {
 }
 
 /* ============================================================
-   解說面板（DOM 疊層）：淡色毛玻璃、深色文字，直式底部固定
+   解說面板（DOM 疊層）：暖白紙、深墨字，圖鑑／編輯調性，直式底部固定
    ------------------------------------------------------------
-   毛玻璃 = 半透明白底 + backdrop-filter 模糊。iOS Safari 需同時
-   寫 -webkit-backdrop-filter，否則模糊會失效。底層再疊一層極淡
-   白色遮罩（--glass-veil，用漸層實作）襯托文字、確保可讀。
+   底色用微透的暖白紙（--paper-panel）＋ backdrop-filter 模糊，讓相機/
+   圖卡透出一點以增強 AR 感，同時維持文字可讀。iOS Safari 需同時寫
+   -webkit-backdrop-filter，否則模糊會失效。
+   --accent-soft 在此重新宣告：JS 把 --accent 設在本元素，於是面板內的
+   淡底色能隨物種 accent 連動。
    ============================================================ */
 #panel {
   position: fixed;
@@ -131,20 +143,21 @@ html, body {
   transform: translate(-50%, 20px);
   z-index: 20;
   width: min(92vw, 460px);
-  max-height: 82vh;                    /* 展開長內文時不超出螢幕 */
+  max-height: 76vh;                    /* 略縮高度，讓相機/圖卡透出更多 */
   overflow-y: auto;                    /* 超過就在面板內捲動 */
   -webkit-overflow-scrolling: touch;
   padding: 18px 20px 20px;
-  border-radius: 20px;                 /* 柔和圓角 */
-  /* 半透明白底 + 疊一層極淡白遮罩（漸層）以襯托文字 */
-  background:
-    linear-gradient(var(--glass-veil), var(--glass-veil)),
-    var(--glass);
-  border: 1px solid var(--glass-border);
-  color: var(--kf-ink);
-  box-shadow: 0 10px 34px rgba(30, 60, 80, 0.18);  /* 輕柔浮起感 */
-  -webkit-backdrop-filter: blur(20px) saturate(125%);  /* iOS 必備前綴 */
-  backdrop-filter: blur(20px) saturate(125%);
+  border-radius: 14px;                 /* 圓角收斂，走編輯感 */
+  /* 暖白紙微透底 */
+  background: var(--paper-panel);
+  border: 1px solid var(--hairline);   /* 1px 細邊框 */
+  color: var(--ink);
+  box-shadow: 0 8px 28px rgba(35, 41, 43, 0.12);  /* 極淡陰影 */
+  -webkit-backdrop-filter: blur(16px) saturate(105%);  /* iOS 必備前綴 */
+  backdrop-filter: blur(16px) saturate(105%);
+  /* --accent-soft 隨本元素的 --accent 連動（含靜態 fallback） */
+  --accent-soft: rgba(20, 112, 125, 0.12);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
   /* 淡入淡出 */
   opacity: 0;
   pointer-events: none;
@@ -156,31 +169,47 @@ html, body {
   pointer-events: auto;   /* 顯示時才接收觸控/點擊，隱藏時 none 不擋畫面 */
 }
 
-/* 面板內文字級皆乘上 --panel-font-scale，供大字模式整體放大 */
+/* ------------------------------------------------------------
+   標題階層（各自成行）：中文名 → 學名＋命名者 → 亞種 → 英文名
+   面板內文字級皆乘上 --panel-font-scale，供大字模式整體放大。
+   ------------------------------------------------------------ */
 #p-name {
   font-size: calc(1.5rem * var(--panel-font-scale));
   font-weight: 800;
   line-height: 1.2;
-  color: var(--kf-ink);
+  letter-spacing: 0.5px;
+  color: var(--ink);
   padding-right: 108px;  /* 避開右上角字級鈕 + 關閉鈕 */
 }
+/* 學名行：拉丁文襯線；學名斜體(主色)、命名者括號正體(次要色) */
 #p-sci-line {
-  margin-top: 4px;
-  font-size: calc(0.98rem * var(--panel-font-scale));
-  color: var(--kf-blue-d);
+  margin-top: 5px;
+  font-family: "Noto Serif TC", Georgia, "Times New Roman", serif;
+  font-size: calc(1.02rem * var(--panel-font-scale));
+  line-height: 1.35;
+  color: var(--ink);
 }
-#p-sci { font-style: italic; }        /* 學名斜體 */
-#p-sci-note { font-style: normal; font-size: calc(0.85rem * var(--panel-font-scale)); color: var(--kf-ink-soft); }
-#p-en {
-  margin-top: 2px;
+#p-sci { font-style: italic; }        /* 學名襯線斜體 */
+#p-sci-note { font-style: normal; font-size: calc(0.85rem * var(--panel-font-scale)); color: var(--ink-soft); }
+/* 亞種：獨立一行、次要色；允許自然斷詞，不硬折學名 */
+#p-sub {
+  margin-top: 3px;
   font-size: calc(0.85rem * var(--panel-font-scale));
-  color: var(--kf-ink-soft);
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+#p-sub:empty { display: none; }       /* 沒有亞種時不留空行 */
+#p-en {
+  margin-top: 4px;
+  font-size: calc(0.85rem * var(--panel-font-scale));
+  letter-spacing: 0.3px;
+  color: var(--ink-soft);
 }
 
 /* ============================================================
-   手風琴（六個主動探索項目）：直排、清爽圓角膠囊按鈕。
+   手風琴（六個主動探索項目）：直排、圖鑑感細邊清單。
    點按鈕在其下方以 max-height transition 平順展開 body；
-   展開中的按鈕以翠鳥青藍漸層當 active 樣式。
+   展開中的按鈕改為 --accent-soft 淡底 + --accent 文字（不再用亮藍漸層）。
    ============================================================ */
 #p-accordion {
   margin-top: 16px;
@@ -202,50 +231,51 @@ html, body {
   text-align: left;
   font-size: calc(1.02rem * var(--panel-font-scale));
   font-weight: 700;
-  color: var(--kf-blue-d);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(46, 159, 216, 0.35);
-  border-radius: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
   cursor: pointer;
   pointer-events: auto;           /* 確保可點（即使父層曾設 none） */
   transition: background 0.18s ease, color 0.18s ease,
-              border-color 0.18s ease, box-shadow 0.18s ease,
-              border-radius 0.18s ease;
+              border-color 0.18s ease, border-radius 0.18s ease;
 }
-/* 右側 ＋／－ 指示符 */
+/* 右側 ＋／－ 指示符（accent 色） */
 .acc-btn::after {
   content: "＋";
   flex: 0 0 auto;
   font-size: 1.15rem;
   font-weight: 700;
-  opacity: 0.75;
+  color: var(--accent);
+  opacity: 0.7;
 }
-.acc-btn:active { background: rgba(255, 255, 255, 0.72); }
+.acc-btn:active { background: var(--accent-soft); }
 
-/* 展開中：青藍漸層重點色，底部方角以接上內文 */
+/* 展開中：accent 淡底 + accent 文字，hairline 邊線；底部方角接上內文 */
 .acc-item.open .acc-btn {
-  color: #ffffff;
-  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
-  border-color: var(--kf-blue);
-  box-shadow: 0 3px 10px rgba(46, 159, 216, 0.35);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--hairline);
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
 .acc-item.open .acc-btn::after { content: "－"; opacity: 0.95; }
 
-/* 可展開內文：max-height 0 → 內容高度（由 JS 設定）平順動畫 */
+/* 可展開內文：max-height 0 → 內容高度（由 JS 設定）平順動畫。
+   accent 淡底延續 active 按鈕；不加邊框以免 max-height 收合時露出邊線。
+   左右下邊由 active 按鈕的 hairline 邊視覺延續。 */
 .acc-body {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.35s ease;
-  background: rgba(255, 255, 255, 0.42);
-  border-radius: 0 0 12px 12px;
+  background: var(--accent-soft);
+  border-radius: 0 0 10px 10px;
 }
 .acc-body-inner {
   padding: 14px 16px 16px;
   font-size: calc(1.02rem * var(--panel-font-scale));  /* 內文字級，大字模式再放大 */
   line-height: 1.8;               /* 行距寬鬆好讀 */
-  color: var(--kf-ink);
+  color: var(--ink);
 }
 
 /* 字級切換鈕（面板右上角，關閉鈕左側）：本身字級固定，不隨大字模式縮放 */
@@ -257,21 +287,22 @@ html, body {
   padding: 0 14px;
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--kf-blue-d);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(46, 159, 216, 0.35);
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   cursor: pointer;
   pointer-events: auto;           /* 確保可點 */
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease, transform 0.1s ease;
 }
 #p-font:active { transform: scale(0.94); }
-#p-font:hover { background: rgba(255, 255, 255, 0.8); }
-/* 大字模式啟用中：以翠鳥青藍漸層當 active 樣式 */
+#p-font:hover { background: var(--accent-soft); }
+/* 大字模式啟用中：accent 淡底 + accent 文字（與手風琴 active 一致） */
 #p-font[aria-pressed="true"] {
-  color: #ffffff;
-  background: linear-gradient(180deg, #3aa9de 0%, var(--kf-blue) 100%);
-  border-color: var(--kf-blue);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 /* 關閉按鈕（面板右上角，好按） */
@@ -285,16 +316,17 @@ html, body {
   text-align: center;
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--kf-ink);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(46, 159, 216, 0.35);
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--hairline);
   border-radius: 50%;
   cursor: pointer;
   pointer-events: auto;           /* 確保可點 */
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease, transform 0.1s ease;
 }
 #p-close:active { transform: scale(0.92); }
-#p-close:hover { background: rgba(255, 255, 255, 0.8); }
+#p-close:hover { color: var(--ink); background: var(--accent-soft); }
 
 /* ============================================================
    顯示圖層（由底到頂）：

@@ -10,12 +10,20 @@
        └─ birds      : 鳥種資料庫，每一個 key = 一種鳥 = 一整組資料
 
    每一種鳥的欄位：
-       name     : 中文名（面板主畫面大字）
-       sciName  : 學名（顯示為斜體）
-       sciNote  : 學名附註（命名者、亞種等）
-       enName   : 英文名
-       sections : 六個手風琴項目的陣列，依序顯示；
-                  每項有 title（按鈕文字）與 body（展開後的內文）
+       name       : 中文名（面板主畫面大字）
+       sciName    : 學名（拉丁文，顯示為襯線斜體）
+       sciAuthor  : 命名者（如 "(Linnaeus, 1758)"），接在學名後、次要色
+       subspecies : 亞種（如 "台灣亞種 A. a. bengalensis"），獨立一行
+       enName     : 英文名
+       accent     : 這種鳥的重點色（面板 active／學名等），見下方色彩規範
+       sections   : 六個手風琴項目的陣列，依序顯示；
+                    每項有 title（按鈕文字）與 body（展開後的內文）
+
+   ── accent 色彩規範（跨物種務必遵守）──────────────────────
+   accent 一律採「沉穩、去飽和的博物館／自然史圖鑑級色」，例如深青、
+   墨綠、赭紅、褐灰。★ 禁止高飽和、螢光、霓虹色 ★，以維持策展級調性。
+   選色建議：飽和度偏低、明度中偏深，能與暖白紙底(--paper)與深墨字
+   (--ink)協調。未填 accent 時，程式會 fallback 用預設青綠 #14707D。
 
    ★★ 之後要新增鳥種：把整個 kingfisher: { ... } 區塊複製一份，
       換成新的 key 與內容，再把上面的 activeBird 改成新的 key 即可。★★
@@ -34,10 +42,12 @@ window.KINGFISHER_CONTENT = {
 
     // ========== 翠鳥 ==========
     kingfisher: {
-      name:    "翠鳥",
-      sciName: "Alcedo atthis",                               // 斜體
-      sciNote: "(Linnaeus, 1758)　台灣亞種 A. a. bengalensis", // 學名附註
-      enName:  "Common Kingfisher",
+      name:       "翠鳥",
+      sciName:    "Alcedo atthis",                      // 學名（襯線斜體）
+      sciAuthor:  "(Linnaeus, 1758)",                   // 命名者（括號，接學名後）
+      subspecies: "台灣亞種 A. a. bengalensis",          // 亞種（獨立一行）
+      enName:     "Common Kingfisher",
+      accent:     "#14707D",   // 沉穩去飽和的青綠（博物館級），見上方色彩規範
 
       // 六個手風琴項目（依序）
       sections: [
@@ -73,8 +83,10 @@ window.KINGFISHER_CONTENT = {
     // egret: {
     //   name: "小白鷺",
     //   sciName: "Egretta garzetta",
-    //   sciNote: "(Linnaeus, 1766)",
+    //   sciAuthor: "(Linnaeus, 1766)",
+    //   subspecies: "",                 // 沒有就留空字串
     //   enName: "Little Egret",
+    //   accent: "#5B6B62",              // 例：去飽和的灰綠（博物館級，禁螢光）
     //   sections: [
     //     { title: "認識牠",       body: "…" },
     //     { title: "外形特徵",     body: "…" },

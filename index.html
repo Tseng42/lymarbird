@@ -13,9 +13,15 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <link rel="stylesheet" href="css/style.css?v=9" />
+  <!-- 學名（拉丁文）用襯線斜體：載入 Noto Serif TC；中文維持無襯線（系統字） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
+
+  <link rel="stylesheet" href="css/style.css?v=10" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=9"></script>
+  <script src="js/content.js?v=10"></script>
 </head>
 <body>
 
@@ -50,11 +56,14 @@
     <!-- 關閉按鈕：按下才淡出面板、暫停音效並解除鎖定 -->
     <button id="p-close" aria-label="關閉">✕</button>
 
-    <!-- 主畫面（固定顯示，簡潔）：中文名（大字）、學名（斜體）＋附註、英文名 -->
+    <!-- 標題階層：中文名、學名、亞種、英文名各自成行。
+         學名（Latin，襯線斜體）＋命名者（括號，次要色）同一行；
+         亞種獨立一行，避免與命名者擠在一起而硬折。 -->
     <div id="p-name"></div>
     <div id="p-sci-line">
       <span id="p-sci"></span><span id="p-sci-note"></span>
     </div>
+    <div id="p-sub"></div>
     <div id="p-en"></div>
 
     <!-- 六個手風琴項目：由 js/content.js 的 sections 動態產生。
@@ -122,10 +131,20 @@
           var el = document.getElementById(id);
           if (el) el.textContent = (val != null ? val : '');
         }
-        // 主畫面：中文名（大字）、學名（斜體由 CSS 處理）＋附註、英文名
+
+        // 跨物種配色：把這隻鳥的 accent 設到面板根元素，面板內所有
+        // var(--accent)／--accent-soft 都會隨之改色。未設定則 fallback 預設色。
+        // ★ 規範：accent 一律用沉穩、去飽和的博物館級色，禁止高飽和螢光色（見 content.js）。
+        panelEl.style.setProperty('--accent', bird.accent || '#14707D');
+
+        // 標題階層：中文名、學名＋命名者（括號）、亞種（獨立行）、英文名
         set('p-name', bird.name);
         set('p-sci', bird.sciName);
-        set('p-sci-note', bird.sciNote ? ('　' + bird.sciNote) : '');
+        // 命名者括號（如 (Linnaeus, 1758)）：接在學名後、次要色；
+        // 相容舊資料：沒有 sciAuthor 時退回舊的 sciNote 欄位。
+        var author = bird.sciAuthor || bird.sciNote || '';
+        set('p-sci-note', author ? (' ' + author) : '');
+        set('p-sub', bird.subspecies);   // 亞種自成一行
         set('p-en', bird.enName);
 
         buildAccordion(bird.sections || []);
