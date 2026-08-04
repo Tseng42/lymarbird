@@ -59,7 +59,7 @@ window.KINGFISHER_CONTENT = {
       accent:     "#14707D",   // 沉穩去飽和的青綠（博物館級），見上方色彩規範
 
       // 叫聲音檔與授權標示（資料驅動；換鳥只改這兩行＋覆蓋音檔）
-      callSrc:    "assets/call.mp3?v=3",
+      callSrc:    "assets/call.mp3?v=4",
       // ★ 換成真實叫聲後，務必把 callCredit 改成正確的錄音者／授權標示 ★
       callCredit: "錄音:Marie-Lan Taÿ Pamart / xeno-canto XC476785 / CC BY-SA 4.0",
 

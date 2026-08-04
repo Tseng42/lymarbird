@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=19" />
+  <link rel="stylesheet" href="css/style.css?v=20" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=19"></script>
+  <script src="js/content.js?v=20"></script>
 </head>
 <body>
 
@@ -147,7 +147,7 @@
        loop 循環播放；音量在 js 內依 content.js 設定。
        （← 替換這裡：assets/call.mp3）
        ============================================================ -->
-  <audio id="call" src="assets/call.mp3" loop preload="auto"></audio>
+  <audio id="call" src="assets/call.mp3?v=4" loop preload="auto"></audio>
 
   <!-- ============================================================
        應用邏輯：開始鈕啟動 MindAR、targetFound/targetLost 事件、
@@ -375,11 +375,12 @@
         applyContent();
         applyAudioVolume();
 
-        // iOS：在使用者手勢中先「解鎖」音訊（播放後立即暫停）
-        audioEl.play().then(function () {
-          audioEl.pause();
-          audioEl.currentTime = 0;
-        }).catch(function () { /* 尚無音檔或被阻擋，略過 */ });
+        // 已停用 iOS 音訊預解鎖：叫聲僅由 🔊 鈕手動播（點擊即手勢），
+        // 預解鎖會在啟動時發出可聽見的叫聲，故移除（2026-08）。
+        // audioEl.play().then(function () {
+        //   audioEl.pause();
+        //   audioEl.currentTime = 0;
+        // }).catch(function () {});
 
         // 1) 在使用者手勢中，先明確以後置鏡頭(environment)請求相機權限。
         //    這能確保 iOS 取得後置鏡頭並在手勢內完成授權；拿到後立即釋放，
