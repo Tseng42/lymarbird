@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=20" />
+  <link rel="stylesheet" href="css/style.css?v=21" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=20"></script>
+  <script src="js/content.js?v=21"></script>
 </head>
 <body>
 
@@ -425,6 +425,7 @@
         collapsed = c;
         panelEl.classList.toggle('collapsed', c);
         panelHandle.setAttribute('aria-expanded', c ? 'false' : 'true');
+        document.documentElement.classList.toggle('observe', c);  // 收合=觀察模式：放大鳥圖
       }
       // 量測實際標題列高度 → 設定收合時露出的 peek 高度（隨大字模式/內容變動）
       function updatePeek() {

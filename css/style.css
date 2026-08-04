@@ -174,8 +174,8 @@ html, body {
   justify-content: center;
   pointer-events: none;             /* 純視覺，不攔截觸控 */
   opacity: 0;                       /* 預設隱藏，避免開始畫面/掃描時閃現 */
-  transition: opacity 0.4s ease;
-  will-change: transform, opacity;
+  transition: opacity 0.4s ease, height 0.35s ease;
+  will-change: transform, opacity, height;
 }
 #bird-layer.show { opacity: 1; }
 /* 進場中：拉高到面板之上，完成「先在面板之上掠入」的驚艷時刻 */
@@ -205,10 +205,20 @@ html, body {
   animation: birdIdle 3s ease-in-out infinite;
   /* 淡淡投影，讓鳥從相機畫面中浮出、更有立體感 */
   filter: drop-shadow(0 6px 10px rgba(35, 41, 43, 0.28));
+  transition: max-width 0.35s ease, max-height 0.35s ease;
 }
 @keyframes birdIdle {
   0%, 100% { transform: translateY(0)    scale(1); }
   50%      { transform: translateY(-7px) scale(1.02); }
+}
+
+/* 觀察模式（抽屜收合）：鳥舞台長高到 peek 之上，鳥圖放大並自然置中 */
+html.observe #bird-layer {
+  height: calc(100svh - var(--peek-h));
+}
+html.observe #bird-sprite {
+  max-width: min(82vw, 440px);
+  max-height: calc((100svh - var(--peek-h)) * 0.62);
 }
 
 /* 尊重「減少動態」偏好：關掉浮誇動畫，僅保留淡入淡出 */
