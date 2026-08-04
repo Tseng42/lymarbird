@@ -466,6 +466,7 @@ html, body {
 /* 字級切換鈕（面板右上角，關閉鈕左側）：本身字級固定，不隨大字模式縮放 */
 #p-font {
   position: absolute;
+  z-index: 2;
   top: 10px;
   right: 58px;
   height: 40px;
@@ -493,6 +494,7 @@ html, body {
 /* 關閉按鈕（面板右上角，好按） */
 #p-close {
   position: absolute;
+  z-index: 2;
   top: 10px;
   right: 10px;
   width: 40px;
