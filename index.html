@@ -122,8 +122,7 @@
        AR 場景。autoStart:false → 由 JS 在按下開始鈕後才 start。
        uiScanning / uiLoading 關掉 MindAR 內建 UI，改用我們自己的提示。
        ============================================================ -->
-  <!-- 正式辨識目標：assets/target.mind（你自己的翠鳥卡）
-       測試流程可暫時改成 assets/example-target.mind（官方範例） -->
+  <!-- 正式辨識目標：assets/target.mind（你自己的翠鳥卡） -->
   <a-scene
     id="ar-scene"
     mindar-image="imageTargetSrc: assets/target.mind; autoStart: false; uiScanning: no; uiLoading: no; uiError: no;"
@@ -138,7 +137,7 @@
     <!-- targetIndex:0 對應 target.mind 中第一張圖。
          此 entity 僅用來接收 targetFound / targetLost 事件；
          視覺呈現全部改由 HTML 疊層面板負責，AR 場景不再放 3D 物件
-         （assets/bird.png 已停用，檔案保留備用）。 -->
+         （原 assets/bird.png 佔位圖已移除）。 -->
     <a-entity id="target" mindar-image-target="targetIndex: 0"></a-entity>
   </a-scene>
 
