@@ -59,12 +59,12 @@ window.KINGFISHER_CONTENT = {
       accent:     "#14707D",   // 沉穩去飽和的青綠（博物館級），見上方色彩規範
 
       // 叫聲音檔與授權標示（資料驅動；換鳥只改這兩行＋覆蓋音檔）
-      callSrc:    "assets/call.mp3",
+      callSrc:    "assets/call.mp3?v=2",
       // ★ 換成真實叫聲後，務必把 callCredit 改成正確的錄音者／授權標示 ★
-      callCredit: "錄音:佔位素材（待換成 CC 授權真實叫聲）",
+      callCredit: "錄音:Albert Lastukhin / xeno-canto XC1138529 / <授權>",
 
       // 2D 動態鳥圖（資料驅動；換鳥只改這兩行＋覆蓋去背 PNG）
-      sprite:     "assets/kingfisher.png",   // 去背透明 PNG
+      sprite:     "assets/kingfisher.png?v=2",   // 去背透明 PNG
       flight:     "dart",                    // 低空直線快掠（目前唯一支援；預設 dart）
 
       // 六個手風琴項目（依序）
