@@ -19,9 +19,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=13" />
+  <link rel="stylesheet" href="css/style.css?v=14" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=13"></script>
+  <script src="js/content.js?v=14"></script>
 </head>
 <body>
 
@@ -54,7 +54,8 @@
        時序（驚艷時刻）：辨識到卡片 → 鳥先以高 z-index(在面板之上)全寬低空
        快速掠入一次(dart)；掠入結束後降回舞台、z-index 回到面板之下、開始
        輕微上下浮動 idle，接著底部抽屜才升起（鳥先、面板後）。
-       辨識丟失/關閉面板即淡出消失。圖與飛行風格資料驅動：content.js 的
+       鎖定 latch：掃一次即停留，辨識丟失不消失；只由關閉面板(✕)淡出消失。
+       圖與飛行風格資料驅動：content.js 的
        sprite / flight。尊重 prefers-reduced-motion（略過掠入，直接定位）。
        ============================================================ -->
   <div id="bird-layer" class="flight-dart" aria-hidden="true">
@@ -217,7 +218,7 @@
 
         // 2D 鳥圖（資料驅動）：sprite 圖路徑 + flight 飛行風格。
         // 只在路徑真的不同時才改 src；改後先 decode() 預載，避免首次顯示閃爍，
-        // 缺圖/載入失敗則 birdReady=false，showBird() 會略過（不顯示破圖）。
+        // 缺圖/載入失敗則 birdReady=false，dartBird/showBirdImmediate 會略過（不顯示破圖）。
         var wantSprite = bird.sprite || 'assets/kingfisher.png';
         if (birdSprite.getAttribute('src') !== wantSprite) {
           birdReady = false;
@@ -362,14 +363,8 @@
         setTimeout(after, 850);
       }
 
-      // 供「已鎖定時重新辨識到」使用：鳥再飛入一次（面板已在，不需接面板）。
-      // 減少動態時直接定位不掠入。
-      function showBird() {
-        if (!birdReady) return;
-        if (prefersReducedMotion()) { showBirdImmediate(); return; }
-        dartBird(null);
-      }
-      // 隱藏：淡出（opacity transition）。
+      // 隱藏：淡出（opacity transition）。只在按 ✕ 關閉面板(closePanel)時呼叫；
+      // 鎖定 latch 期間 targetLost 不呼叫此函式——鳥掃一次就停留在畫面。
       function hideBird() {
         birdLayer.classList.remove('show', 'enter');
       }
@@ -493,11 +488,16 @@
         var targetEl = document.getElementById('target');
 
         targetEl.addEventListener('targetFound', function () {
-          if (locked) {         // 已鎖定顯示中：面板已在，只讓鳥再掠入一次
-            showBird();
-            return;
-          }
-          locked = true;        // 一掃到就鎖定，之後 targetLost 不再隱藏
+          // 鎖定 latch：第一次掃到就進入鎖定；此後再次 targetFound 一律忽略，
+          // 不重播入場掠入動畫（避免一直重播）。
+          //
+          // ★ 多物種規則落點 ★：鎖定期間「先忽略其他卡片」，必須先按 ✕ 關閉
+          //   （closePanel 會把 locked 重置）才能掃下一種。日後若要改成
+          //   「關閉即可掃下一隻」，重點就在這道 locked 閘門與 closePanel 的
+          //   重置——例如關閉後允許新的 targetFound 帶入新的鳥種內容。
+          if (locked) return;
+
+          locked = true;        // 掃一次即鎖定：之後 targetLost 不再隱藏鳥與面板
 
           // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
           if (prefersReducedMotion()) {
@@ -509,11 +509,14 @@
         });
 
         targetEl.addEventListener('targetLost', function () {
-          // 面板鎖定期間不隱藏，讓使用者能繼續閱讀（面板只由 ✕ 關閉鈕關掉）；
-          // 但叫聲一律立即停止並重置，避免離開卡片後仍在背景續播或重疊。
-          // 使用者可再點面板上的播放鈕重新聆聽。
+          // 鎖定 latch：掃一次即停留在畫面。鎖定期間目標離開畫面「不」做任何
+          // 收起動作——鳥、面板、叫聲全部維持，讓使用者能離開圖卡繼續看與聽。
+          // 一切只由右上角 ✕ 關閉鈕（closePanel）收起並解除鎖定。
+          // （守衛：理論上 targetFound 會立即 locked=true，故未鎖定就丟失幾乎
+          //   不會發生；仍保留原本的清理，作為未鎖定狀態的安全網。）
+          if (locked) return;
           stopCall();
-          hideBird();           // 鳥：辨識丟失即淡出消失
+          hideBird();
         });
       }
 
