@@ -22,9 +22,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=24" />
+  <link rel="stylesheet" href="css/style.css?v=25" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=23"></script>
+  <script src="js/content.js?v=24"></script>
 </head>
 <body>
 
@@ -137,11 +137,13 @@
     <!-- MindAR 相機 -->
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- targetIndex:0 對應 target.mind 中第一張圖。
-         此 entity 僅用來接收 targetFound / targetLost 事件；
-         視覺呈現全部改由 HTML 疊層面板負責，AR 場景不再放 3D 物件
-         （原 assets/bird.png 佔位圖已移除）。 -->
-    <a-entity id="target" mindar-image-target="targetIndex: 0"></a-entity>
+    <!-- 辨識目標 entity（僅用來接收 targetFound / targetLost 事件；
+         視覺呈現全部改由 HTML 疊層面板負責，AR 場景不再放 3D 物件）。
+         每加一種新鳥，在這裡新增一行
+           <a-entity class="ar-target" mindar-image-target="targetIndex: N"></a-entity>
+         N 必須等於 content.js 的 targetOrder 陣列中該鳥的位置（從 0 起算），
+         且順序需與 MindAR 編譯器裡上傳圖片的順序一致。 -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 0"></a-entity>
   </a-scene>
 
   <!-- ============================================================
@@ -180,11 +182,17 @@
           window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       }
 
-      // 取得目前展示的鳥種資料（content.js: activeBird 指定 birds 裡的一組）
+      // 目前辨識到的鳥種 key：由 targetFound 依 entity 的 index 查 targetOrder 設定，
+      // closePanel 時重置為 null。多目標時決定「面板要顯示哪一種鳥」。
+      var currentBirdKey = null;
+
+      // 取得目前展示的鳥種資料。優先用 currentBirdKey（多目標：掃到哪張卡就是哪隻）；
+      // 沒有才 fallback 回 content.js 的 activeBird（保留舊行為相容）。
       function getBird() {
         var c = window.KINGFISHER_CONTENT || {};
         var birds = c.birds || {};
-        return birds[c.activeBird] || {};
+        var key = currentBirdKey || c.activeBird;
+        return birds[key] || {};
       }
 
       // ---- 把鳥種主畫面欄位填入面板，並建立六個手風琴項目 ----
@@ -451,6 +459,7 @@
       // 關閉（使用者按 ✕ 時）：滑下、停止並重置音效、解除鎖定
       function closePanel() {
         locked = false;
+        currentBirdKey = null;              // 解除鎖定：清掉目前鳥種，可再掃下一張卡
         panelEl.classList.remove('show');   // 面板滑下淡出
         stopCall();                         // 立即停止並重置叫聲
         hideBird();                         // 鳥一併淡出，回到乾淨的可再掃描狀態
@@ -491,39 +500,51 @@
       });
 
       // ---- 綁定 MindAR 目標事件 ----
+      // 多目標：抓「所有」.ar-target entity，用 index 逐一綁定。
+      // 每個 entity 的 index 對應 content.js 的 targetOrder[index]（該卡片的鳥種 key）。
       function bindTargetEvents() {
-        var targetEl = document.getElementById('target');
+        var targets = document.querySelectorAll('.ar-target');
 
-        targetEl.addEventListener('targetFound', function () {
-          // 鎖定 latch：第一次掃到就進入鎖定；此後再次 targetFound 一律忽略，
-          // 不重播入場掠入動畫（避免一直重播）。
-          //
-          // ★ 多物種規則落點 ★：鎖定期間「先忽略其他卡片」，必須先按 ✕ 關閉
-          //   （closePanel 會把 locked 重置）才能掃下一種。日後若要改成
-          //   「關閉即可掃下一隻」，重點就在這道 locked 閘門與 closePanel 的
-          //   重置——例如關閉後允許新的 targetFound 帶入新的鳥種內容。
-          if (locked) return;
+        Array.prototype.forEach.call(targets, function (targetEl, index) {
+          targetEl.addEventListener('targetFound', function () {
+            // 鎖定 latch：第一次掃到就進入鎖定；此後再次 targetFound 一律忽略，
+            // 不重播入場掠入動畫（避免一直重播）。
+            //
+            // ★ 多物種規則落點 ★：鎖定期間「先忽略其他卡片」，必須先按 ✕ 關閉
+            //   （closePanel 會把 locked 重置）才能掃下一種。日後若要改成
+            //   「關閉即可掃下一隻」，重點就在這道 locked 閘門與 closePanel 的
+            //   重置——例如關閉後允許新的 targetFound 帶入新的鳥種內容。
+            if (locked) return;
 
-          locked = true;        // 掃一次即鎖定：之後 targetLost 不再隱藏鳥與面板
+            locked = true;        // 掃一次即鎖定：之後 targetLost 不再隱藏鳥與面板
 
-          // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
-          if (prefersReducedMotion()) {
-            showBirdImmediate();  // 減少動態：不掠入，直接定位
-            showPanel();          // 面板改淡入（見 CSS reduced-motion）
-          } else {
-            dartBird(function () { showPanel(); });  // 掠入完成才升面板
-          }
-        });
+            // 用此 entity 的 index 查 targetOrder，決定要展示哪一種鳥。
+            var c = window.KINGFISHER_CONTENT || {};
+            var order = c.targetOrder || [];
+            currentBirdKey = order[index] || null;
 
-        targetEl.addEventListener('targetLost', function () {
-          // 鎖定 latch：掃一次即停留在畫面。鎖定期間目標離開畫面「不」做任何
-          // 收起動作——鳥、面板、叫聲全部維持，讓使用者能離開圖卡繼續看與聽。
-          // 一切只由右上角 ✕ 關閉鈕（closePanel）收起並解除鎖定。
-          // （守衛：理論上 targetFound 會立即 locked=true，故未鎖定就丟失幾乎
-          //   不會發生；仍保留原本的清理，作為未鎖定狀態的安全網。）
-          if (locked) return;
-          stopCall();
-          hideBird();
+            // 依 currentBirdKey 重新填入面板內容（含鳥圖、學名、手風琴…）
+            applyContent();
+
+            // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
+            if (prefersReducedMotion()) {
+              showBirdImmediate();  // 減少動態：不掠入，直接定位
+              showPanel();          // 面板改淡入（見 CSS reduced-motion）
+            } else {
+              dartBird(function () { showPanel(); });  // 掠入完成才升面板
+            }
+          });
+
+          targetEl.addEventListener('targetLost', function () {
+            // 鎖定 latch：掃一次即停留在畫面。鎖定期間目標離開畫面「不」做任何
+            // 收起動作——鳥、面板、叫聲全部維持，讓使用者能離開圖卡繼續看與聽。
+            // 一切只由右上角 ✕ 關閉鈕（closePanel）收起並解除鎖定。
+            // （守衛：理論上 targetFound 會立即 locked=true，故未鎖定就丟失幾乎
+            //   不會發生；仍保留原本的清理，作為未鎖定狀態的安全網。）
+            if (locked) return;
+            stopCall();
+            hideBird();
+          });
         });
       }
 

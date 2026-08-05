@@ -43,6 +43,11 @@ window.KINGFISHER_CONTENT = {
   // 目前展示的鳥種（換卡片就改這裡，對應 birds 裡的 key）
   activeBird: "kingfisher",
 
+  // 多目標對應：依 target.mind 編譯時「卡片上傳的順序」列出對應的 birds key。
+  // 陣列位置(從 0 起算) = MindAR 的 targetIndex；辨識到第 N 張卡就展示 targetOrder[N]。
+  // ★ 之後每編一次新的 target.mind，就照編譯時的上傳順序，把新的 key 加到陣列尾端。★
+  targetOrder: ['kingfisher'],
+
   // 叫聲音量（0.0 ～ 1.0）
   volume: 0.6,
 
