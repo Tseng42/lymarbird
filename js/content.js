@@ -46,7 +46,7 @@ window.KINGFISHER_CONTENT = {
   // 多目標對應：依 target.mind 編譯時「卡片上傳的順序」列出對應的 birds key。
   // 陣列位置(從 0 起算) = MindAR 的 targetIndex；辨識到第 N 張卡就展示 targetOrder[N]。
   // ★ 之後每編一次新的 target.mind，就照編譯時的上傳順序，把新的 key 加到陣列尾端。★
-  targetOrder: ['myna', 'sparrowhawk', 'commonmyna', 'kingfisher', 'goshawk', 'sandpiper', 'waterhen', 'partridge', 'pintail', 'emeralddove', 'shama', 'drongo', 'egret', 'kestrel', 'coot'],
+  targetOrder: ['myna', 'sparrowhawk', 'commonmyna', 'kingfisher', 'goshawk', 'sandpiper', 'waterhen', 'partridge', 'sharptail', 'emeralddove', 'shama', 'drongo', 'egret', 'kestrel', 'coot'],
 
   // 叫聲音量（0.0 ～ 1.0）
   volume: 0.6,
@@ -257,25 +257,25 @@ window.KINGFISHER_CONTENT = {
       ]
     },
 
-    // ========== 尖尾鴨 ==========
-    pintail: {
-      name:       "尖尾鴨",
-      sciName:    "Anas acuta",
-      sciAuthor:  "Linnaeus, 1758",
+    // ========== 尖尾鷸 ==========
+    sharptail: {
+      name:       "尖尾鷸",
+      sciName:    "Calidris acuminata",
+      sciAuthor:  "(Horsfield, 1821)",
       subspecies: "",
-      enName:     "Northern Pintail",
-      accent:     "#4E6B6E",
-      callSrc:    "assets/pintail.mp3?v=1",
+      enName:     "Sharp-tailed Sandpiper",
+      accent:     "#7C6248",
+      callSrc:    "assets/sharptail.mp3?v=1",
       callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
-      sprite:     "assets/pintail.png?v=1",
+      sprite:     "assets/sharptail.png?v=1",
       flight:     "dart",
       sections: [
-        { title: "認識牠",   body: "尖尾鴨是台灣冬季常見的候鳥之一，因為雄鳥擁有一對細長如針的尾羽而得名，也叫做針尾鴨。牠廣泛分布於北半球，每年秋冬會南遷到台灣的濕地與河口度冬。" },
-        { title: "外形特徵", body: "雌雄異型，繁殖羽雄鳥頭部茶褐色，頸部紫黑色，白色頸紋一路延伸到後頸與胸部，體背灰白密佈暗褐色細紋，中央尾羽特別修長；雌鳥則是低調的褐色，佈滿深色細斑。" },
-        { title: "棲地分布", body: "常棲息於湖泊、草澤、河口與農耕地帶，喜歡成群活動，蘭陽溪口與無尾港濕地在冬季都有機會觀察到牠們的蹤跡。" },
-        { title: "食性行為", body: "主要以水生動植物為食，覓食時常把頭栽進水裡、尾部朝天倒立式覓食，這個姿勢在雁鴨科水鳥中相當常見卻總是逗趣。" },
-        { title: "飛行方式", body: "善於飛行，飛行時頸與腳都會伸直，常成群結隊移動，隊形整齊、速度快。" },
-        { title: "保育與冷知識", body: "保育等級：台灣屬一般類，非保育類；IUCN 評為無危（LC）。（台灣保育類名錄請以館方最新版本為準。）尖尾鴨沒有亞種分化，是少數分布橫跨北半球卻維持單一物種的鴨類，牠優雅修長的體態，也讓牠在賞鳥人心中有「水鳥界的模特兒」之稱。" }
+        { title: "認識牠",   body: "尖尾鷸（又名尖尾濱鷸）是台灣春季過境時的常客水鳥，繁殖於西伯利亞東北部苔原地帶，遷徙時會經過台灣，一路南下到紐幾內亞、澳洲與紐西蘭度冬，是候鳥長途遷徙故事裡很具代表性的一位過客。" },
+        { title: "外形特徵", body: "體長約19公分，是體態圓潤、背部略平的中小型鷸科水鳥。繁殖羽頭頂鏽紅色帶黑色細縱斑，眉斑米黃色，胸部黃褐色佈有黑色圓形斑點，腹部以下白色帶黑色V字型斑；非繁殖羽全身轉為較淡的灰褐色。嘴喙黑褐色、略下彎，雙腳橄欖黃褐色。" },
+        { title: "棲地分布", body: "主要出現在河口、近海沼澤、鹽田、水田與沙洲等淺水地帶，喜歡在潮間帶周邊活動，蘭陽溪口一帶的水田與泥灘在過境季節都有機會觀察到牠。" },
+        { title: "食性行為", body: "以甲殼類、軟體動物與昆蟲為主食，也兼食植物性食物，覓食時常單獨或成小群活動，領域性強，不喜歡被同類靠得太近。" },
+        { title: "飛行方式", body: "飛行敏捷、振翅頻率快，過境時常與其他鷸科水鳥混群，一起長途跨洋遷徙，往返於西伯利亞繁殖地與南半球度冬地之間，單趟遷徙距離可達上萬公里。" },
+        { title: "保育與冷知識", body: "保育等級：⚠️台灣國內保育等級待查證（建議上 taicol.tw 或請館方確認最新名錄）；IUCN 國際紅皮書評為易危（VU, Vulnerable）——全球族群估計僅約6萬到12萬隻，是這批物種裡少數在國際上被正式列為受脅等級的鳥種。（台灣保育類名錄請以館方最新版本為準。）尖尾鷸的英文種小名「acuminata」是拉丁文「尖銳」的意思，呼應了牠尖尖的尾羽與略顯尖細的外形輪廓。" }
       ]
     },
 
