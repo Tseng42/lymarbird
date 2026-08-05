@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>活起來的圖卡 · 翠鳥 WebAR</title>
 
   <!-- ============================================================
@@ -19,9 +22,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=22" />
+  <link rel="stylesheet" href="css/style.css?v=23" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=22"></script>
+  <script src="js/content.js?v=23"></script>
 </head>
 <body>
 
@@ -562,6 +565,14 @@
 
       startButton.addEventListener('click', start);
       document.getElementById('p-close').addEventListener('click', closePanel);
+
+      // 量測實際可視高度（跨瀏覽器穩定，供觀察模式置中）
+      function setAppH() {
+        document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+      }
+      setAppH();
+      window.addEventListener('resize', setAppH);
+      window.addEventListener('orientationchange', setAppH);
 
       if (sceneEl.hasLoaded) bindTargetEvents();
       else sceneEl.addEventListener('loaded', bindTargetEvents);

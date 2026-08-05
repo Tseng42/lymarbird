@@ -214,13 +214,11 @@ html, body {
 
 /* 觀察模式（抽屜收合）：鳥舞台長高到 peek 之上，鳥圖放大並自然置中 */
 html.observe #bird-layer {
-  height: calc(100vh - var(--peek-h));     /* 保底：vh 普遍支援 */
-  height: calc(100dvh - var(--peek-h));    /* 較準：支援時覆蓋，動態視窗會扣掉工具列 */
+  height: calc(var(--app-h, 100vh) - var(--peek-h));
 }
 html.observe #bird-sprite {
   max-width: min(82vw, 440px);
-  max-height: calc((100vh - var(--peek-h)) * 0.62);
-  max-height: calc((100dvh - var(--peek-h)) * 0.62);
+  max-height: calc((var(--app-h, 100vh) - var(--peek-h)) * 0.62);
 }
 
 /* 尊重「減少動態」偏好：關掉浮誇動畫，僅保留淡入淡出 */
