@@ -237,11 +237,12 @@
         // 只在路徑真的不同時才改 src；改後先 decode() 預載，避免首次顯示閃爍，
         // 缺圖/載入失敗則 birdReady=false，dartBird/showBirdImmediate 會略過（不顯示破圖）。
         var wantSprite = bird.sprite || 'assets/kingfisher.png';
+        var spriteReady = Promise.resolve();   // 預設：路徑沒變，視為已就緒
         if (birdSprite.getAttribute('src') !== wantSprite) {
           birdReady = false;
           birdSprite.setAttribute('src', wantSprite);
           if (birdSprite.decode) {
-            birdSprite.decode()
+            spriteReady = birdSprite.decode()
               .then(function () { birdReady = true; })
               .catch(function () { birdReady = false; });
           }
@@ -253,6 +254,8 @@
         birdLayer.classList.add('flight-' + (bird.flight || 'dart'));
 
         buildAccordion(bird.sections || []);
+
+        return spriteReady;
       }
 
       // ---- 手風琴 ----
@@ -529,15 +532,17 @@
             currentBirdKey = order[index] || null;
 
             // 依 currentBirdKey 重新填入面板內容（含鳥圖、學名、手風琴…）
-            applyContent();
-
-            // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
-            if (prefersReducedMotion()) {
-              showBirdImmediate();  // 減少動態：不掠入，直接定位
-              showPanel();          // 面板改淡入（見 CSS reduced-motion）
-            } else {
-              dartBird(function () { showPanel(); });  // 掠入完成才升面板
-            }
+            // applyContent() 現在回傳一個 Promise：sprite 圖片真正 decode 完成才 resolve，
+            // 避免 decode() 非同步跑完前就搶先判斷 birdReady 導致第一次跳過動畫。
+            applyContent().then(function () {
+              // 驚艷時序：鳥先掠入 → 掠入結束後底部抽屜才升起（鳥先、面板後）。
+              if (prefersReducedMotion()) {
+                showBirdImmediate();  // 減少動態：不掠入，直接定位
+                showPanel();          // 面板改淡入（見 CSS reduced-motion）
+              } else {
+                dartBird(function () { showPanel(); });  // 掠入完成才升面板
+              }
+            });
           });
 
           targetEl.addEventListener('targetLost', function () {
