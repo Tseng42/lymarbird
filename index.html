@@ -22,9 +22,9 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" />
 
-  <link rel="stylesheet" href="css/style.css?v=25" />
+  <link rel="stylesheet" href="css/style.css?v=26" />
   <!-- 物種內容設定（文字＋素材路徑集中管理，非工程人員只需改這個檔） -->
-  <script src="js/content.js?v=24"></script>
+  <script src="js/content.js?v=25"></script>
 </head>
 <body>
 
@@ -143,7 +143,12 @@
            <a-entity class="ar-target" mindar-image-target="targetIndex: N"></a-entity>
          N 必須等於 content.js 的 targetOrder 陣列中該鳥的位置（從 0 起算），
          且順序需與 MindAR 編譯器裡上傳圖片的順序一致。 -->
-    <a-entity class="ar-target" mindar-image-target="targetIndex: 0"></a-entity>
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 0"></a-entity>  <!-- 0: 八哥 myna -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 1"></a-entity>  <!-- 1: 日本松雀鷹 sparrowhawk -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 2"></a-entity>  <!-- 2: 家八哥 commonmyna -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 3"></a-entity>  <!-- 3: 翠鳥 kingfisher（原本是 targetIndex:0，這次務必改成 3） -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 4"></a-entity>  <!-- 4: 鳳頭蒼鷹 goshawk -->
+    <a-entity class="ar-target" mindar-image-target="targetIndex: 5"></a-entity>  <!-- 5: 磯鷸 sandpiper -->
   </a-scene>
 
   <!-- ============================================================
