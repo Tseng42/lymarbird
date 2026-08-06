@@ -46,7 +46,7 @@ window.KINGFISHER_CONTENT = {
   // 多目標對應：依 target.mind 編譯時「卡片上傳的順序」列出對應的 birds key。
   // 陣列位置(從 0 起算) = MindAR 的 targetIndex；辨識到第 N 張卡就展示 targetOrder[N]。
   // ★ 之後每編一次新的 target.mind，就照編譯時的上傳順序，把新的 key 加到陣列尾端。★
-  targetOrder: ['myna', 'sparrowhawk', 'commonmyna', 'kingfisher', 'goshawk', 'sandpiper', 'waterhen', 'partridge', 'sharptail', 'emeralddove', 'shama', 'drongo', 'egret', 'kestrel', 'coot'],
+  targetOrder: ['myna', 'sparrowhawk', 'commonmyna', 'kingfisher', 'goshawk', 'sandpiper', 'waterhen', 'partridge', 'sharptail', 'emeralddove', 'shama', 'drongo', 'egret', 'kestrel', 'coot', 'common-snipe', 'pintail-snipe', 'malayan-night-heron', 'barn-swallow', 'manchurian-bush-warbler', 'pheasant-tailed-jacana', 'black-naped-monarch', 'black-bulbul', 'cinnamon-bittern'],
 
   // 叫聲音量（0.0 ～ 1.0）
   volume: 0.6,
@@ -408,6 +408,195 @@ window.KINGFISHER_CONTENT = {
         { title: "食性行為", body: "雜食性，以水草、藻類、水生昆蟲為主食，覓食技巧多樣，會像野鴨一樣倒立覓食，也會潛入水中尋找食物，有時甚至會捕食其他水鳥的蛋。" },
         { title: "飛行方式", body: "起飛前需要在水面上用瓣蹼助跑一段距離，貼著水面飛行一陣子才能真正升空，起飛過程略顯笨拙，和優雅的游泳姿態形成有趣對比。" },
         { title: "保育與冷知識", body: "保育等級：台灣屬一般類，非保育類；IUCN 評為無危（LC）。（台灣保育類名錄請以館方最新版本為準。）白冠雞的瓣狀蹼是牠游泳與潛水的秘密武器，這種構造在鳥類中並不常見，是牠能悠遊於水面、又能潛水覓食的關鍵演化特徵。" }
+      ]
+    }
+    ,
+    "common-snipe": {
+      name:       "田鷸",
+      sciName:    "Gallinago gallinago",
+      sciAuthor:  "(Linnaeus, 1758)",
+      subspecies: "G. g. gallinago（台灣常見冬候鳥亞種）",
+      enName:     "Common Snipe",
+      accent:     "#7D6B56",
+      callSrc:    "assets/common-snipe.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/common-snipe.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "田鷸是冬日濕地與水田中的隱密行者，極具保護色的羽紋使其能完美融進枯草與泥灘間。" },
+        { title: "外形特徵", body: "體長約 25–27 公分。頭部有醒目的黃褐色縱紋，背部帶有黃白色縱帶，擁有長而直的黑色喙部與短小的灰綠色腳。" },
+        { title: "棲地分布", body: "廣泛分布於歐亞大陸，冬季會南遷至台灣的水田、沼澤、河口與低海拔濕地。" },
+        { title: "食性行為", body: "以長喙如縫紉機般不斷扎入軟泥中，尋找軟體動物、蚯蚓及水生昆蟲，多在晨昏或夜間活躍。" },
+        { title: "飛行方式", body: "驚起時會發出尖銳的「scape」叫聲，並以急速的 z 字形鋸齒狀路線快速掠空飛行。" },
+        { title: "保育與冷知識", body: "求偶期雄鳥會在空中俯衝，利用尾羽震動發出類似羊咩咩的鼓音（winnowing），英文「Sniper（精射手）」一詞正是源於早期獵人極難擊中這種飛行極快的鳥類。" }
+      ]
+    }
+    ,
+    "pintail-snipe": {
+      name:       "針尾鷸",
+      sciName:    "Gallinago stenura",
+      sciAuthor:  "(Bonaparte, 1831)",
+      subspecies: "單型種（無亞種分化）",
+      enName:     "Pintail Snipe",
+      accent:     "#8A735C",
+      callSrc:    "assets/pintail-snipe.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/pintail-snipe.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "與田鷸極為相似的過境與冬候鳥，外觀極難在野外直接辨識，主要特徵隱藏於其特殊的尾羽結構中。" },
+        { title: "外形特徵", body: "嘴喙略短於田鷸，體表同為黃褐相間的斑駁隱蔽色，翅膀後緣無明顯白邊；外側尾羽演化成極為細窄的針狀。" },
+        { title: "棲地分布", body: "繁殖於西伯利亞與北亞地區，冬季南遷至東南亞及台灣，喜好水田、乾涸泥灘與草原邊緣。" },
+        { title: "食性行為", body: "以肉食為主，用長喙探測泥土深處的蚯蚓、昆蟲幼蟲與小型無脊椎動物。" },
+        { title: "飛行方式", body: "驚飛時起飛動作直接且快速，起飛時發出的鳴聲較田鷸更低沉短促。" },
+        { title: "保育與冷知識", body: "外側多達 6 至 9 對的針狀尾羽在空中俯衝時能產生獨特頻率的聲響，是用於吸引異性與宣示領域的強大工具。" }
+      ]
+    }
+    ,
+    "malayan-night-heron": {
+      name:       "黑冠麻鷺",
+      sciName:    "Gorsachius melanolophus",
+      sciAuthor:  "(Raffles, 1822)",
+      subspecies: "G. m. melanolophus",
+      enName:     "Malayan Night Heron",
+      accent:     "#8C533C",
+      callSrc:    "assets/malayan-night-heron.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/malayan-night-heron.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "都市公園與校園草坪的常客，因經常在人類身旁不為所動，常被俗稱為「大公蛇」或「大笨鳥」。" },
+        { title: "外形特徵", body: "體型中等，頭頂帶有黑色冠羽，繁殖期眼周與嘴基部會轉為鮮豔藍紫色；背部為栗紅色並帶有些微細黑斑紋。" },
+        { title: "棲地分布", body: "分布於東南亞與台灣，偏好低海拔森林、公園、綠地及潮濕的陰暗草地。" },
+        { title: "食性行為", body: "主食為蚯蚓，也捕食蛙類、昆蟲及小型爬蟲類；常在草地上站立不動，傾頭聽音辨位後迅速叼出蚯蚓。" },
+        { title: "飛行方式", body: "不善長途飛行，多為低空平飛，被驚擾時傾向拍翅飛至附近樹枝上佇立觀望。" },
+        { title: "保育與冷知識", body: "遇到威脅時會伸長脖子、將頭羽豎起並左右搖晃身軀模擬樹枝隨風擺動；繁殖季夜間會發出低沉遠播的「咕—咕—」蛙鳴般聲響。" }
+      ]
+    }
+    ,
+    "barn-swallow": {
+      name:       "家燕",
+      sciName:    "Hirundo rustica",
+      sciAuthor:  "Linnaeus, 1758",
+      subspecies: "H. r. gutturalis（台灣常見過境與繁殖亞種）",
+      enName:     "Barn Swallow",
+      accent:     "#2B3A4E",
+      callSrc:    "assets/barn-swallow.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/barn-swallow.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "最為人熟知的夏候鳥與留鳥之一，常在人類住宅騎樓下築巢，被傳統視為吉祥與春天的象徵。" },
+        { title: "外形特徵", body: "背部呈金屬光澤的深藍黑色，額頭與喉部為鮮豔栗紅色，腹部白色，擁有深叉狀的剪刀尾羽。" },
+        { title: "棲地分布", body: "全球廣布，極度適應人工環境，常活動於農田、城鄉聚落、池塘及開闊空地上空。" },
+        { title: "食性行為", body: "專性空中食蟲者，在飛行中張開大嘴捕捉蚊、蠅、蛾類及飛蟻等空中昆蟲。" },
+        { title: "飛行方式", body: "飛行技巧極為高超，能以高速進行銳角轉彎、俯衝與低空貼水掠過。" },
+        { title: "保育與冷知識", body: "會啣取泥土混合唾液與乾草，在建築物牆角黏築碗狀泥巢；每年南北遷徙距離可高達上萬公里。" }
+      ]
+    }
+    ,
+    "manchurian-bush-warbler": {
+      name:       "遠東樹鶯",
+      sciName:    "Horornis canturians",
+      sciAuthor:  "(Swinhoe, 1860)",
+      subspecies: "H. c. canturians",
+      enName:     "Manchurian Bush-Warbler",
+      accent:     "#6E5D4F",
+      callSrc:    "assets/manchurian-bush-warbler.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/manchurian-bush-warbler.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "體型小巧且極其隱密的樹林過境鳥，多半聞其聲而不見其影，是考驗觀鳥者聽力與耐性的代表物種。" },
+        { title: "外形特徵", body: "全身呈橄欖褐色至灰褐色，頭頂羽色較深帶棕色調，具有極明顯的黃白色眉紋，喙部細尖。" },
+        { title: "棲地分布", body: "繁殖於中國東北與朝鮮半島，冬季南遷，在台灣屬於稀有但規律的過境鳥或冬候鳥，多棲息於灌木叢與低矮林下層。" },
+        { title: "食性行為", body: "主要在低矮密林或灌叢深處跳躍移動，啄食隱蔽的昆蟲、蜘蛛及其幼蟲。" },
+        { title: "飛行方式", body: "飛行距離短且呈現波浪狀，極少在高空或開闊地長時間飛行。" },
+        { title: "保育與冷知識", body: "鳴叫聲宏亮且具變化，常發出流暢且具金屬質感的婉轉哨音；由英國生物學家羅伯特·斯文豪（Robert Swinhoe）於 1860 年首度命名發表。" }
+      ]
+    }
+    ,
+    "pheasant-tailed-jacana": {
+      name:       "水雉",
+      sciName:    "Hydrophasianus chirurgus",
+      sciAuthor:  "(Scopoli, 1786)",
+      subspecies: "單型種（無亞種分化）",
+      enName:     "Pheasant-tailed Jacana",
+      accent:     "#B38F38",
+      callSrc:    "assets/pheasant-tailed-jacana.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/pheasant-tailed-jacana.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "擁有「凌波仙子」美譽的珍貴鳥類，優雅地踩踏於菱角田等浮葉植物上，是台灣溼地保育的指標物種。" },
+        { title: "外形特徵", body: "繁殖羽頭白色、後頸呈金黃色，背部黑褐色，並帶有極長的黑色劍狀尾羽；腳趾與爪極度延長。" },
+        { title: "棲地分布", body: "分布於南亞與東南亞，台灣主要棲息於台南等地的菱角田、芡實池與富含浮葉植物的平地淡水埤塘。" },
+        { title: "食性行為", body: "以長趾分攤體重在浮葉上行走，翻食葉片下方的水生昆蟲、軟體動物、小魚及植物種子。" },
+        { title: "飛行方式", body: "拍翅動作較為緩慢且深，飛行時長雙腳與長尾羽會向後伸展，展現獨特的姿態。" },
+        { title: "保育與冷知識", body: "實行鳥類中少見的「一妻多夫制」，由雄鳥獨自承擔孵卵與育雛的重任；牠們的腳趾長度甚至可達體長的三分之二。" }
+      ]
+    }
+    ,
+    "black-naped-monarch": {
+      name:       "黑枕藍鶲",
+      sciName:    "Hypothymis azurea",
+      sciAuthor:  "(Boddaert, 1783)",
+      subspecies: "H. a. oberholseri（台灣特有亞種）",
+      enName:     "Black-naped Monarch",
+      accent:     "#326B9C",
+      callSrc:    "assets/black-naped-monarch.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/black-naped-monarch.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "台灣低海拔山林中最耀眼的藍色精靈，個性活潑好動，常在樹冠中層發出清脆響亮的鳴叫。" },
+        { title: "外形特徵", body: "雄鳥全身覆蓋鮮豔的青藍色羽毛，後腦勺有一塊醒目的黑色斑塊（黑枕），胸前有一道黑色細環；嘴喙為亮藍色。" },
+        { title: "棲地分布", body: "廣布於東南亞，台灣亞種常見於低海拔闊葉林、次生林及竹林中。" },
+        { title: "食性行為", body: "定棲性食蟲鳥類，常以「定點飛擊（Flycatching）」的方式，從樹枝上定點起飛、於空中攔截飛蟲。" },
+        { title: "飛行方式", body: "飛行極為靈敏，能在密林樹冠間短暫定空停懸並進行急轉彎。" },
+        { title: "保育與冷知識", body: "牠們會使用蜘蛛絲、苔蘚與樹皮纖維，精細地編織出極為精美且呈倒圓錐狀的杯狀鳥巢。" }
+      ]
+    }
+    ,
+    "black-bulbul": {
+      name:       "紅嘴黑鵯",
+      sciName:    "Hypsipetes leucocephalus",
+      sciAuthor:  "(Gmelin, 1789)",
+      subspecies: "H. l. nigerrimus（台灣特有亞種）",
+      enName:     "Black Bulbul",
+      accent:     "#B83227",
+      callSrc:    "assets/black-bulbul.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/black-bulbul.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "山林中最吵雜熱鬧的社交家，黑色的身軀配上鮮紅色的嘴喙與腳爪，外型對比極為搶眼。" },
+        { title: "外形特徵", body: "全身為帶有光澤的蓬鬆深黑灰色，頭頂有鬆散豎立的黑色冠羽；嘴喙與腳爪呈現鮮豔的珊瑚紅色。" },
+        { title: "棲地分布", body: "分布於東亞與南亞，台灣亞種廣布於中低海拔的闊葉林、果園與山區聚落周邊。" },
+        { title: "食性行為", body: "雜食性，極度喜歡採食樟樹、榕樹等樹木的漿果，也會在空中捕捉飛蟻與蟬等昆蟲。" },
+        { title: "飛行方式", body: "喜好結群飛行，飛越山谷時呈現明顯的波浪狀起伏路線，並一邊飛行一邊大聲鳴叫。" },
+        { title: "保育與冷知識", body: "叫聲非常多變，除了貓叫般的「喵—喵—」聲外，也會發出極為嘈雜的齒輪摩擦聲；在布農族與泰雅族的傳統神話中，牠被視為為族人帶來火種的英雄聖鳥。" }
+      ]
+    }
+    ,
+    "cinnamon-bittern": {
+      name:       "栗小鷺",
+      sciName:    "Ixobrychus cinnamomeus",
+      sciAuthor:  "(Gmelin, 1789)",
+      subspecies: "單型種（無亞種分化）",
+      enName:     "Cinnamon Bittern",
+      accent:     "#A65B32",
+      callSrc:    "assets/cinnamon-bittern.mp3?v=1",
+      callCredit: "【待填：錄音者 / 平台 編號 / 授權】",
+      sprite:     "assets/cinnamon-bittern.png?v=1",
+      flight:     "dart",
+      sections: [
+        { title: "認識牠",   body: "體型小巧且極具保護色的鷺科鳥類，常隱身於水田與蘆葦叢中，是溼地與稻田裡的隱士。" },
+        { title: "外形特徵", body: "體長約 38–40 公分。雄鳥背部與翅膀呈現鮮豔的栗紅色（肉桂色），腹部為淡黃褐色帶有棕色縱紋；雌鳥背部則偏灰褐色並帶有許多淡色斑點。" },
+        { title: "棲地分布", body: "廣布於東南亞、南亞及東亞。在台灣為常見的留鳥與夏候鳥，主要棲息於低海拔水田、池塘、溝渠及蘆葦沼澤地。" },
+        { title: "食性行為", body: "性格隱密，多在晨昏及夜間活動。主要以小魚、蝦、小蟹、蛙類、水生昆蟲及軟體動物為食，採靜候捕食策略。" },
+        { title: "飛行方式", body: "驚飛時起飛動作迅速，多採低空貼地平飛，隨後迅速落入附近的濃密植被或草叢中躲藏。" },
+        { title: "保育與冷知識", body: "當感受到周遭威脅時，牠會立刻緊縮身體並伸長脖子、將嘴喙指向天空，保持僵直不動（擬態行為），讓自己完美融進周圍的蘆葦或水稻草莖之中。" }
       ]
     }
 
